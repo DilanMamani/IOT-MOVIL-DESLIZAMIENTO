@@ -1,25 +1,24 @@
 import { View, Text, StyleSheet, TouchableOpacity, ActivityIndicator } from "react-native";
 import type { LstmPrediction, RiskPredictionLevel } from "../types";
 
-// --- PALETA TEMA CLARO ---
-const CARD_BG = "#FFFFFF";
-const BORDER = "#E8E0D5";
-const TEXT_PRIMARY = "#1A1A1A";
-const TEXT_SECONDARY = "#6B6B6B";
-const ACCENT = "#C4622D"; // Terracota
-const LIGHT_FILL = "#F0F0F0"; // Para fondos secundarios como botones o barras
+// --- PALETA TEMA TERRACOTA ---
+const CARD_BG = "#C4622D"; // Terracota principal
+const BORDER = "rgba(255,255,255,0.1)"; // Borde súper sutil
+const TEXT_PRIMARY = "#FFFFFF"; // Blanco puro
+const TEXT_SECONDARY = "rgba(255,255,255,0.8)"; // Blanco semi-transparente para textos secundarios
+const LIGHT_FILL = "rgba(255,255,255,0.2)"; // Para el botón de actualizar y pills neutros
 
-// Colores adaptados para leerse bien sobre fondo blanco
+// Las etiquetas ahora tienen fondo blanco para resaltar sobre el terracota
 const LEVEL_STYLE: Record<RiskPredictionLevel, { bg: string; text: string; label: string }> = {
-  danger:  { bg: "#FDEAEA", text: "#D94F4F", label: "Peligro" },
-  warning: { bg: "#FFF3E0", text: "#E8A020", label: "Advertencia" },
-  normal:  { bg: "#E8F5E9", text: "#2E7D32", label: "Normal" },
+  danger:  { bg: "#FFFFFF", text: "#D94F4F", label: "Peligro" },
+  warning: { bg: "#FFFFFF", text: "#E8A020", label: "Advertencia" },
+  normal:  { bg: "#FFFFFF", text: "#2E7D32", label: "Normal" },
 };
 
 function ProbBar({ value }: { value: number }) {
   const pct = Math.min(100, Math.max(0, Math.round(value * 100)));
-  // Ajuste de colores para la barra en tema claro
-  const color = pct >= 70 ? "#D94F4F" : pct >= 30 ? "#E8A020" : "#2E7D32";
+  // Ajuste de colores vibrantes para la barra para que contrasten con el Terracota
+  const color = pct >= 70 ? "#FF5252" : pct >= 30 ? "#FFB74D" : "#81C784";
   
   return (
     <View style={{ flexDirection: "row", alignItems: "center", gap: 8 }}>
@@ -48,7 +47,7 @@ export function LstmPredictionCard({ result, loading, error, onRefresh }: Props)
         <Text style={s.title}>Predicción LSTM</Text>
         {loading ? (
           <View style={[s.pill, { backgroundColor: LIGHT_FILL }]}>
-            <Text style={[s.pillText, { color: TEXT_SECONDARY }]}>Calculando…</Text>
+            <Text style={[s.pillText, { color: TEXT_PRIMARY }]}>Calculando…</Text>
           </View>
         ) : result?.disponible ? (
           <View style={[s.pill, { backgroundColor: st.bg }]}>
@@ -56,14 +55,14 @@ export function LstmPredictionCard({ result, loading, error, onRefresh }: Props)
           </View>
         ) : (
           <View style={[s.pill, { backgroundColor: LIGHT_FILL }]}>
-            <Text style={[s.pillText, { color: TEXT_SECONDARY }]}>Sin datos</Text>
+            <Text style={[s.pillText, { color: TEXT_PRIMARY }]}>Sin datos</Text>
           </View>
         )}
       </View>
 
       {loading && (
         <View style={s.row}>
-          <ActivityIndicator color={ACCENT} size="small" />
+          <ActivityIndicator color={TEXT_PRIMARY} size="small" />
           <View style={{ flex: 1 }}>
             <Text style={s.rowTitle}>Ejecutando modelo…</Text>
             <Text style={s.rowDesc}>Procesando las últimas lecturas</Text>
@@ -73,8 +72,8 @@ export function LstmPredictionCard({ result, loading, error, onRefresh }: Props)
 
       {!loading && error && (
         <View style={s.row}>
-          {/* Rojo adaptado al tema claro para errores */}
-          <Text style={[s.rowTitle, { color: "#D94F4F" }]}>Error al predecir</Text>
+          {/* Un rojo/rosado clarito para que se lea bien sobre Terracota */}
+          <Text style={[s.rowTitle, { color: "#FFCDD2" }]}>Error al predecir</Text>
           <Text style={s.rowDesc}>{error}</Text>
         </View>
       )}
@@ -129,7 +128,7 @@ const s = StyleSheet.create({
   label: { fontSize: 11, color: TEXT_SECONDARY, fontFamily: "DMSans_400Regular", marginBottom: 4 },
   statRow: { flexDirection: "row", justifyContent: "space-between", alignItems: "center" },
   statValue: { fontSize: 12, color: TEXT_PRIMARY, fontFamily: "DMSans_700Bold" },
-  barTrack: { flex: 1, height: 6, borderRadius: 3, backgroundColor: LIGHT_FILL, overflow: "hidden" },
+  barTrack: { flex: 1, height: 6, borderRadius: 3, backgroundColor: "rgba(255,255,255,0.25)", overflow: "hidden" },
   barFill: { height: 6, borderRadius: 3 },
   barPct: { fontSize: 13, fontFamily: "DMSans_700Bold", minWidth: 36, textAlign: "right" },
   refreshBtn: { alignSelf: "flex-end", paddingHorizontal: 12, paddingVertical: 8, borderRadius: 8, backgroundColor: LIGHT_FILL },
