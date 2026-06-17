@@ -53,7 +53,7 @@ const REPORT_TYPE_LABELS: Record<string, string> = {
 };
 
 export function HomeScreen() {
-  const { user } = useAuth();
+  const { user, logout } = useAuth();
   const navigation = useNavigation<any>();
   const isAdmin = user?.role === "admin";
   const { rows: riskHistory } = useRiskHistory();
@@ -107,14 +107,19 @@ export function HomeScreen() {
       >
         {/* Header */}
         <View style={s.header}>
-          <View>
-            <Text style={s.headerGreet}>Hola,</Text>
-            <Text style={s.headerName}>{firstName}</Text>
-          </View>
-          <TouchableOpacity style={s.bellBtn} onPress={() => navigation.navigate("Alertas")}>
-            <MaterialIcons name="notifications-none" size={26} color={TEXT_PRIMARY} />
-          </TouchableOpacity>
-        </View>
+      <View>
+        <Text style={s.headerGreet}>Hola,</Text>
+        <Text style={s.headerName}>{firstName}</Text>
+      </View>
+      <View style={{ flexDirection: "row", gap: 10 }}>
+        <TouchableOpacity style={s.bellBtn} onPress={() => navigation.navigate("Alertas")}>
+          <MaterialIcons name="notifications-none" size={26} color={TEXT_PRIMARY} />
+        </TouchableOpacity>
+        <TouchableOpacity style={s.bellBtn} onPress={logout}>
+          <MaterialIcons name="logout" size={22} color={TEXT_PRIMARY} />
+        </TouchableOpacity>
+      </View>
+    </View>
 
         {/* Risk + Weather Card */}
         <View style={[s.card, { backgroundColor: DARK_PANEL, borderWidth: 0 }]}>
@@ -218,7 +223,6 @@ export function HomeScreen() {
         </View>
 
         <View style={s.section}>
-          <Text style={s.sectionTitle}>Últimas alertas de riesgo</Text>
           <RiskAlertsCard riskHistory={riskHistory} isAdmin={false} />
         </View>
         
