@@ -29,16 +29,36 @@ export function MainTabs() {
     <Tab.Navigator
       screenOptions={({ route }) => ({
         headerShown: false,
-        tabBarActiveTintColor: "#4edea3",
-        tabBarInactiveTintColor: "#e2bfb0",
+        tabBarActiveTintColor: "#84592B",
+        tabBarInactiveTintColor: "#B5A488",
         tabBarStyle: {
-          backgroundColor: "#0a0e17",
-          borderTopColor: "#5a4136",
-          height: 64,
+          position: "absolute",
+          left: 16,
+          right: 16,
+          bottom: 16,
+          height: 78,
+          borderRadius: 26,
+          backgroundColor: "#FFFFFF",
+          borderTopWidth: 0,
+          paddingTop: 12,
+          paddingBottom: 14,
+          shadowColor: "#442D1C",
+          shadowOffset: { width: 0, height: 6 },
+          shadowOpacity: 0.15,
+          shadowRadius: 16,
+          elevation: 10,
         },
-        tabBarLabelStyle: { fontSize: 11, fontWeight: "700" },
+        tabBarItemStyle: {
+          borderRadius: 16,
+          marginHorizontal: 3,
+          height: 52,
+        },
+        tabBarLabelStyle: {
+          fontSize: 10,
+          fontWeight: "600",
+        },
         tabBarIcon: ({ color, size }) => (
-          <MaterialIcons name={ICONS[route.name]} color={color} size={size} />
+          <MaterialIcons name={ICONS[route.name]} color={color} size={size - 6} />
         ),
       })}
     >
