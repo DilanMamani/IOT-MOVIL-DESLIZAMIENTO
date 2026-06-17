@@ -1,4 +1,5 @@
 import * as SecureStore from "expo-secure-store";
+import { Platform } from "react-native";
 
 const API_URL = process.env.EXPO_PUBLIC_API_URL ?? "http://localhost:3000";
 const SESSION_KEY = "terraguard_auth_session";
@@ -18,8 +19,45 @@ export class ApiError extends Error {
   }
 }
 
+// --- Storage cross-platform: SecureStore en nativo, localStorage en web ---
+async function storageGet(key: string): Promise<string | null> {
+  if (Platform.OS === "web") {
+    try {
+      return localStorage.getItem(key);
+    } catch {
+      return null;
+    }
+  }
+  return SecureStore.getItemAsync(key);
+}
+
+async function storageSet(key: string, value: string): Promise<void> {
+  if (Platform.OS === "web") {
+    try {
+      localStorage.setItem(key, value);
+    } catch {
+      // noop
+    }
+    return;
+  }
+  await SecureStore.setItemAsync(key, value);
+}
+
+async function storageDelete(key: string): Promise<void> {
+  if (Platform.OS === "web") {
+    try {
+      localStorage.removeItem(key);
+    } catch {
+      // noop
+    }
+    return;
+  }
+  await SecureStore.deleteItemAsync(key);
+}
+// ---------------------------------------------------------------------
+
 async function getToken(): Promise<string | null> {
-  const raw = await SecureStore.getItemAsync(SESSION_KEY);
+  const raw = await storageGet(SESSION_KEY);
   if (!raw) return null;
   try {
     return JSON.parse(raw).token ?? null;
@@ -79,4 +117,4 @@ export async function apiRequest<T>(
   return json.data;
 }
 
-export { SESSION_KEY, API_URL };
+export { SESSION_KEY, API_URL, storageGet, storageSet, storageDelete };

@@ -23,22 +23,24 @@ export function MonitorScreen() {
 
   return (
     <SafeAreaView className="flex-1 bg-surface" edges={["top"]}>
-      <ScreenHeader title="Monitor de Alertas" liveLabel="EN VIVO" />
+      <ScreenHeader
+        title="Monitor de alertas"
+        liveLabel="En vivo"
+        subtitle={
+          alerts.length > 0
+            ? `${alerts.length} alerta${alerts.length === 1 ? "" : "s"} activa${alerts.length === 1 ? "" : "s"}`
+            : "Sin actividad reciente"
+        }
+      />
       <ScrollView
         contentContainerStyle={{ padding: 16, gap: 16 }}
         refreshControl={
-          <RefreshControl refreshing={isLoading} onRefresh={refresh} tintColor="#ffb693" />
+          <RefreshControl refreshing={isLoading} onRefresh={refresh} tintColor="#84592B" />
         }
       >
         {error ? (
           <Text className="font-sans text-error text-center">{error}</Text>
         ) : null}
-
-        <View className="flex-row items-center justify-between">
-          <Text className="font-sans-bold text-label-caps text-on-surface-variant uppercase">
-            Alertas activas ({alerts.length})
-          </Text>
-        </View>
 
         {alerts.length === 0 && !isLoading ? (
           <EmptyState
