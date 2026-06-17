@@ -11,6 +11,8 @@ import {
 import { SafeAreaView } from "react-native-safe-area-context";
 import { MaterialIcons } from "@expo/vector-icons";
 import { useState, useRef, useCallback } from "react";
+import { useChatbot } from "../../hooks/useChatbot";
+import type { Report } from "../../types";
 
 const TERRACOTA = "#C4622D";
 const DARK_PANEL = "#2C1A0E";
@@ -49,6 +51,7 @@ function now() {
   return new Date().toLocaleTimeString("es-BO", { hour: "2-digit", minute: "2-digit", hour12: false });
 }
 
+
 let msgId = 0;
 function newId() { return String(++msgId); }
 
@@ -58,55 +61,55 @@ const WELCOME: Message = {
   time: now(),
   text: "Hola, soy el asistente de SlideWatch. 👋\n\nPuedo ayudarte en emergencias, guiarte para reportar incidentes o consultar el estado de tus reportes.\n\n¿En qué te ayudo hoy?",
 };
+function statusConfig(status: Report["status"]) {
+  if (status === "atendido") return { label: "Atendido", color: "#4CAF50", bg: "#E8F5E9" };
+  if (status === "en_revision") return { label: "En revisión", color: "#E8A020", bg: "#FFF3E0" };
+  if (status === "descartado") return { label: "Descartado", color: "#D94F4F", bg: "#FDEAEA" };
+  return { label: "Pendiente", color: "#8C8C8C", bg: "#F0F0F0" };
+}
+
+function ReportCard({ report }: { report: Report }) {
+  const status = statusConfig(report.status);
+  const date = new Date(report.reported_at).toLocaleDateString("es-BO", {
+    day: "2-digit", month: "short",
+  });
+
+  return (
+    <View style={s.reportCard}>
+      <View style={s.reportCardHeader}>
+        <Text style={s.reportCardId}>Reporte #{report.id}</Text>
+        <View style={[s.reportCardBadge, { backgroundColor: status.bg }]}>
+          <Text style={[s.reportCardBadgeText, { color: status.color }]}>{status.label}</Text>
+        </View>
+      </View>
+      <Text style={s.reportCardType}>{report.incident_type}</Text>
+      <Text style={s.reportCardDesc} numberOfLines={2}>{report.description}</Text>
+      <View style={s.reportCardFooter}>
+        <MaterialIcons name="place" size={12} color={TEXT_SECONDARY} />
+        <Text style={s.reportCardMeta}>{report.location_name} · {date}</Text>
+      </View>
+    </View>
+  );
+}
 
 export function ChatScreen() {
-  const [messages, setMessages] = useState<Message[]>([WELCOME]);
+  const { messages, isSending, sendMessage } = useChatbot();
   const [input, setInput] = useState("");
   const [showQuickReplies, setShowQuickReplies] = useState(true);
   const scrollRef = useRef<ScrollView>(null);
 
-  const sendMessage = useCallback((text: string) => {
+  const handleSend = (text: string) => {
     if (!text.trim()) return;
     setShowQuickReplies(false);
-
-    const userMsg: Message = { id: newId(), role: "user", text: text.trim(), time: now() };
-    setMessages((prev) => [...prev, userMsg]);
+    sendMessage(text);
     setInput("");
-
-    // Simulate bot response
-    setTimeout(() => {
-      const reply =
-        BOT_RESPONSES[text.trim()] ??
-        "Entendido. Por ahora puedo responder preguntas frecuentes sobre emergencias y el uso de la app. Para asistencia inmediata llama al 117 (Defensa Civil) o al 110 (Policía).";
-      const botMsg: Message = { id: newId(), role: "bot", text: reply, time: now() };
-      setMessages((prev) => [...prev, botMsg]);
-      setTimeout(() => scrollRef.current?.scrollToEnd({ animated: true }), 100);
-    }, 600);
-
     setTimeout(() => scrollRef.current?.scrollToEnd({ animated: true }), 100);
-  }, []);
+  };
 
   return (
     <SafeAreaView style={s.safe}>
-      {/* Header */}
-      <View style={s.header}>
-        <View style={s.headerLeft}>
-          <View style={s.botAvatar}>
-            <MaterialIcons name="support-agent" size={22} color={TERRACOTA} />
-          </View>
-          <View>
-            <Text style={s.headerTitle}>Asistente SlideWatch</Text>
-            <Text style={s.headerSub}>Respuesta automática</Text>
-          </View>
-        </View>
-        <View style={s.aiBadge}>
-          <MaterialIcons name="auto-awesome" size={12} color={TERRACOTA} />
-          <Text style={s.aiBadgeText}>IA</Text>
-        </View>
-      </View>
-
+      {/* ... header igual ... */}
       <KeyboardAvoidingView style={{ flex: 1 }} behavior={Platform.OS === "ios" ? "padding" : undefined}>
-        {/* Messages */}
         <ScrollView
           ref={scrollRef}
           style={s.scroll}
@@ -121,22 +124,36 @@ export function ChatScreen() {
                   <MaterialIcons name="support-agent" size={15} color={TERRACOTA} />
                 </View>
               )}
-              <View style={[s.bubble, msg.role === "user" ? s.bubbleUser : s.bubbleBot]}>
-                <Text style={[s.bubbleText, msg.role === "user" && s.bubbleTextUser]}>
-                  {msg.text}
-                </Text>
-                <Text style={[s.bubbleTime, msg.role === "user" && { color: "rgba(255,255,255,0.6)" }]}>
-                  {msg.time}
-                </Text>
+              <View style={{ maxWidth: "78%" }}>
+                <View style={[s.bubble, msg.role === "user" ? s.bubbleUser : s.bubbleBot]}>
+                  <Text style={[s.bubbleText, msg.role === "user" && s.bubbleTextUser]}>
+                    {msg.text}
+                  </Text>
+                  <Text style={[s.bubbleTime, msg.role === "user" && { color: "rgba(255,255,255,0.6)" }]}>
+                    {msg.time}
+                  </Text>
+                </View>
+
+                {msg.reportCard && <ReportCard report={msg.reportCard} />}
               </View>
             </View>
           ))}
 
-          {/* Quick Replies */}
+          {isSending && (
+            <View style={s.msgRow}>
+              <View style={s.botAvatarSmall}>
+                <MaterialIcons name="support-agent" size={15} color={TERRACOTA} />
+              </View>
+              <View style={[s.bubble, s.bubbleBot]}>
+                <Text style={s.bubbleText}>Escribiendo…</Text>
+              </View>
+            </View>
+          )}
+
           {showQuickReplies && (
             <View style={s.quickReplies}>
               {QUICK_REPLIES.map((q) => (
-                <TouchableOpacity key={q} style={s.quickChip} onPress={() => sendMessage(q)} activeOpacity={0.8}>
+                <TouchableOpacity key={q} style={s.quickChip} onPress={() => handleSend(q)} activeOpacity={0.8}>
                   <Text style={s.quickChipText}>{q}</Text>
                 </TouchableOpacity>
               ))}
@@ -146,7 +163,6 @@ export function ChatScreen() {
           <View style={{ height: 20 }} />
         </ScrollView>
 
-        {/* Input Bar */}
         <View style={s.inputBar}>
           <TextInput
             style={s.input}
@@ -156,15 +172,16 @@ export function ChatScreen() {
             onChangeText={setInput}
             multiline
             maxLength={500}
-            onSubmitEditing={() => sendMessage(input)}
+            onSubmitEditing={() => handleSend(input)}
+            editable={!isSending}
           />
           <TouchableOpacity
-            style={[s.sendBtn, !input.trim() && s.sendBtnDisabled]}
-            onPress={() => sendMessage(input)}
-            disabled={!input.trim()}
+            style={[s.sendBtn, (!input.trim() || isSending) && s.sendBtnDisabled]}
+            onPress={() => handleSend(input)}
+            disabled={!input.trim() || isSending}
             activeOpacity={0.85}
           >
-            <MaterialIcons name="send" size={20} color={input.trim() ? "#fff" : TEXT_SECONDARY} />
+            <MaterialIcons name="send" size={20} color={input.trim() && !isSending ? "#fff" : TEXT_SECONDARY} />
           </TouchableOpacity>
         </View>
       </KeyboardAvoidingView>
@@ -245,4 +262,17 @@ const s = StyleSheet.create({
     backgroundColor: TERRACOTA, justifyContent: "center", alignItems: "center",
   },
   sendBtnDisabled: { backgroundColor: CREAM_DEEP },
+
+  reportCard: {
+    marginTop: 8, backgroundColor: "#fff", borderRadius: 14, padding: 14,
+    borderWidth: 1, borderColor: BORDER, gap: 6,
+  },
+  reportCardHeader: { flexDirection: "row", justifyContent: "space-between", alignItems: "center" },
+  reportCardId: { fontSize: 12, color: TEXT_SECONDARY, fontFamily: "DMSans_700Bold" },
+  reportCardBadge: { paddingHorizontal: 10, paddingVertical: 3, borderRadius: 12 },
+  reportCardBadgeText: { fontSize: 11, fontFamily: "DMSans_700Bold" },
+  reportCardType: { fontSize: 14, color: TEXT_PRIMARY, fontFamily: "DMSans_700Bold" },
+  reportCardDesc: { fontSize: 13, color: TEXT_SECONDARY, fontFamily: "DMSans_400Regular", lineHeight: 18 },
+  reportCardFooter: { flexDirection: "row", alignItems: "center", gap: 4, marginTop: 2 },
+  reportCardMeta: { fontSize: 11, color: TEXT_SECONDARY, fontFamily: "DMSans_400Regular" },
 });

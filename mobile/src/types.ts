@@ -215,3 +215,12 @@ export interface HistorySeries {
   vibrationDetected: number[];
   records: Record<string, unknown>[];
 }
+
+export type ChatbotResponse =
+  | { ok: true; tipo_respuesta: "texto"; mensaje: string }
+  | { ok: true; tipo_respuesta: "ui_card_reporte"; mensaje: string; datos: Report }
+
+export type ChatHistoryItem = {
+  role: "user" | "model";
+  content: string;
+}
