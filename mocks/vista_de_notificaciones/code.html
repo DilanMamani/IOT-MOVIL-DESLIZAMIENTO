@@ -1,0 +1,254 @@
+<!DOCTYPE html>
+
+<html class="dark" lang="es"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" name="viewport"/>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;600;700&amp;family=DM+Mono:wght@500;700&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<style>
+        :root {
+            --primary-orange: #ff6b00;
+        }
+        body {
+            background-color: #090d16;
+            color: #dfe2ef;
+            overflow-x: hidden;
+            font-family: 'DM Sans', sans-serif;
+        }
+        .lock-screen-gradient {
+            background: radial-gradient(circle at top right, #1a2436 0%, #090d16 100%);
+        }
+        .glass-panel {
+            background: rgba(18, 25, 38, 0.8);
+            backdrop-filter: blur(12px);
+            border: 1px solid rgba(31, 45, 68, 0.5);
+        }
+        .critical-glow {
+            box-shadow: 0 0 15px rgba(255, 107, 0, 0.2);
+        }
+        .notification-stack > *:not(:first-child) {
+            margin-top: -8px;
+            transform: scale(0.96);
+            opacity: 0.8;
+        }
+        .notification-stack > *:first-child {
+            z-index: 10;
+        }
+    </style>
+<script id="tailwind-config">
+        tailwind.config = {
+            darkMode: "class",
+            theme: {
+                extend: {
+                    "colors": {
+                        "surface-variant": "#31353f",
+                        "inverse-surface": "#dfe2ef",
+                        "on-tertiary-container": "#6a000b",
+                        "inverse-on-surface": "#2c303a",
+                        "primary-fixed": "#ffdbcc",
+                        "surface-container-high": "#262a34",
+                        "secondary": "#4edea3",
+                        "surface-container-highest": "#31353f",
+                        "on-secondary-fixed-variant": "#005236",
+                        "secondary-fixed": "#6ffbbe",
+                        "surface-tint": "#ffb693",
+                        "secondary-container": "#00a572",
+                        "inverse-primary": "#a04100",
+                        "on-surface-variant": "#e2bfb0",
+                        "secondary-fixed-dim": "#4edea3",
+                        "surface": "#0f131c",
+                        "primary": "#ffb693",
+                        "on-error-container": "#ffdad6",
+                        "surface-container-lowest": "#0a0e17",
+                        "outline-variant": "#5a4136",
+                        "on-secondary-container": "#00311f",
+                        "on-tertiary-fixed-variant": "#930013",
+                        "error-container": "#93000a",
+                        "tertiary-fixed-dim": "#ffb3ad",
+                        "on-primary-fixed-variant": "#7a3000",
+                        "background": "#0f131c",
+                        "tertiary-fixed": "#ffdad7",
+                        "on-primary-container": "#572000",
+                        "error": "#ffb4ab",
+                        "on-surface": "#dfe2ef",
+                        "on-primary-fixed": "#351000",
+                        "surface-dim": "#0f131c",
+                        "on-tertiary": "#68000a",
+                        "on-background": "#dfe2ef",
+                        "surface-bright": "#353943",
+                        "outline": "#a98a7d",
+                        "tertiary": "#ffb3ad",
+                        "on-error": "#690005",
+                        "on-secondary-fixed": "#002113",
+                        "on-primary": "#561f00",
+                        "surface-container-low": "#181b25",
+                        "surface-container": "#1c1f29",
+                        "primary-fixed-dim": "#ffb693",
+                        "primary-container": "#ff6b00",
+                        "on-tertiary-fixed": "#410004",
+                        "on-secondary": "#003824",
+                        "tertiary-container": "#ff6762"
+                    },
+                    "borderRadius": {
+                        "DEFAULT": "4px",
+                        "lg": "8px",
+                        "xl": "12px",
+                        "full": "9999px"
+                    },
+                    "spacing": {
+                        "sm": "8px",
+                        "md": "16px",
+                        "base": "4px",
+                        "xl": "32px",
+                        "margin-mobile": "16px",
+                        "gutter": "16px",
+                        "xs": "4px",
+                        "lg": "24px"
+                    },
+                    "fontFamily": {
+                        "label-caps": ["DM Sans"],
+                        "body-bold": ["DM Sans"],
+                        "stat-lg": ["DM Mono"],
+                        "display-lg": ["DM Sans"],
+                        "headline-md": ["DM Sans"],
+                        "body-base": ["DM Sans"]
+                    },
+                    "fontSize": {
+                        "label-caps": ["11px", {"lineHeight": "14px", "letterSpacing": "0.08em", "fontWeight": "700"}],
+                        "body-bold": ["15px", {"lineHeight": "22px", "letterSpacing": "0", "fontWeight": "600"}],
+                        "stat-lg": ["28px", {"lineHeight": "34px", "letterSpacing": "-0.02em", "fontWeight": "700"}],
+                        "display-lg": ["34px", {"lineHeight": "42px", "letterSpacing": "-0.02em", "fontWeight": "700"}],
+                        "headline-md": ["20px", {"lineHeight": "28px", "letterSpacing": "-0.01em", "fontWeight": "600"}],
+                        "body-base": ["15px", {"lineHeight": "22px", "letterSpacing": "0", "fontWeight": "400"}]
+                    }
+                }
+            }
+        }
+    </script>
+<style>
+    body {
+      min-height: max(884px, 100dvh);
+    }
+  </style>
+</head>
+<body class="bg-surface select-none">
+<!-- Active Banner Overlay (Simulating app in background) -->
+<div class="fixed top-4 left-0 right-0 px-margin-mobile z-[100] transition-transform duration-500 -translate-y-32" id="active-banner">
+<div class="glass-panel rounded-xl p-md flex items-start gap-md shadow-2xl border-l-4 border-l-primary-container">
+<div class="bg-primary-container/20 p-2 rounded-lg">
+<span class="material-symbols-outlined text-primary-container" style="font-variation-settings: 'FILL' 1;">warning</span>
+</div>
+<div class="flex-1">
+<div class="flex justify-between items-center mb-xs">
+<span class="font-label-caps text-label-caps text-primary-container">TERRAGUARD • AHORA</span>
+</div>
+<h3 class="font-body-bold text-body-bold text-on-surface">Movimiento de Tierra Detectado</h3>
+<p class="font-body-base text-body-base text-on-surface-variant">Actividad sísmica inusual registrada en el Sector 4. Se requiere inspección inmediata.</p>
+</div>
+</div>
+</div>
+<!-- Main Lock Screen Layout -->
+<main class="relative h-screen w-full flex flex-col overflow-hidden lock-screen-gradient">
+<!-- Atmospheric Background Pattern -->
+<div class="absolute inset-0 opacity-20 pointer-events-none">
+
+</div>
+<!-- Clock & Date -->
+<header class="relative pt-16 pb-8 flex flex-col items-center text-on-surface">
+<div class="font-display-lg text-[80px] leading-none tracking-tighter opacity-90 mb-2">14:42</div>
+<div class="font-headline-md text-headline-md-mobile opacity-60">martes, 24 de octubre</div>
+</header>
+<!-- Notification Center -->
+<section class="flex-1 px-margin-mobile overflow-y-auto pb-32">
+<!-- Notification Stack Title -->
+<div class="flex items-center justify-between mb-md opacity-80">
+<span class="font-label-caps text-label-caps uppercase tracking-widest">Alertas de TerraGuard</span>
+<span class="material-symbols-outlined text-[18px]">expand_more</span>
+</div>
+<div class="notification-stack flex flex-col space-y-3">
+<!-- CRITICAL ALERT -->
+<div class="glass-panel rounded-xl p-md flex flex-col gap-md critical-glow border-l-4 border-l-primary-container animate-pulse-slow">
+<div class="flex justify-between items-start">
+<div class="flex gap-sm items-center">
+<span class="material-symbols-outlined text-primary-container" style="font-variation-settings: 'FILL' 1;">error</span>
+<span class="font-body-bold text-body-bold text-primary-container">CRÍTICO</span>
+</div>
+<span class="font-stat-lg text-[12px] opacity-50">14:40</span>
+</div>
+<div>
+<h2 class="font-headline-md text-headline-md-mobile text-on-surface mb-xs">Movimiento de Tierra Detectado</h2>
+<p class="font-body-base text-body-base text-on-surface-variant">Sensor S4-G2 reporta desplazamiento estructural de 12mm en el Sector 4.</p>
+</div>
+<div class="flex gap-sm pt-xs">
+<button class="flex-1 bg-primary-container text-on-primary-container font-body-bold text-sm py-2 rounded-lg active:scale-95 transition-transform">Ver Detalles</button>
+<button class="px-md border border-outline-variant text-on-surface-variant font-body-bold text-sm py-2 rounded-lg active:scale-95 transition-transform">Silenciar</button>
+</div>
+</div>
+<!-- HIGH ALERT -->
+<div class="glass-panel rounded-xl p-md flex flex-col gap-md border-l-4 border-l-tertiary-container">
+<div class="flex justify-between items-start">
+<div class="flex gap-sm items-center">
+<span class="material-symbols-outlined text-tertiary-container" style="font-variation-settings: 'FILL' 1;">water_drop</span>
+<span class="font-body-bold text-body-bold text-tertiary-container">ALTA PRIORIDAD</span>
+</div>
+<span class="font-stat-lg text-[12px] opacity-50">14:15</span>
+</div>
+<div>
+<h2 class="font-headline-md text-headline-md-mobile text-on-surface mb-xs">Saturación de Suelo</h2>
+<p class="font-body-base text-body-base text-on-surface-variant">Humedad en Sector 2 alcanzó el 85%. Riesgo incrementado de deslizamiento superficial.</p>
+</div>
+</div>
+<!-- SYSTEM ALERT -->
+<div class="glass-panel rounded-xl p-md flex flex-col gap-md border-l-4 border-l-surface-variant">
+<div class="flex justify-between items-start">
+<div class="flex gap-sm items-center">
+<span class="material-symbols-outlined text-on-surface-variant">sensors_off</span>
+<span class="font-body-bold text-body-bold text-on-surface-variant">SISTEMA</span>
+</div>
+<span class="font-stat-lg text-[12px] opacity-50">13:50</span>
+</div>
+<div>
+<h2 class="font-headline-md text-headline-md-mobile text-on-surface mb-xs">Sensor Offline</h2>
+<p class="font-body-base text-body-base text-on-surface-variant">El Sensor de Deslizamiento D-09 ha perdido conexión. Verificando señal.</p>
+</div>
+</div>
+</div>
+</section>
+<!-- Bottom Controls -->
+<footer class="absolute bottom-0 w-full px-xl pb-10 flex justify-between items-center">
+<button class="w-12 h-12 rounded-full glass-panel flex items-center justify-center active:bg-surface-container-high">
+<span class="material-symbols-outlined">flashlight_on</span>
+</button>
+<div class="h-1 w-32 bg-on-surface/20 rounded-full"></div>
+<button class="w-12 h-12 rounded-full glass-panel flex items-center justify-center active:bg-surface-container-high">
+<span class="material-symbols-outlined">photo_camera</span>
+</button>
+</footer>
+</main>
+<script>
+        // Micro-interaction: Show the top banner after 2 seconds to simulate a live notification
+        window.addEventListener('DOMContentLoaded', () => {
+            setTimeout(() => {
+                const banner = document.getElementById('active-banner');
+                banner.classList.remove('-translate-y-32');
+                
+                // Hide it after some time
+                setTimeout(() => {
+                    banner.classList.add('-translate-y-32');
+                }, 5000);
+            }, 2000);
+        });
+
+        // Simple haptic-like feedback on notification interactions
+        const buttons = document.querySelectorAll('button');
+        buttons.forEach(btn => {
+            btn.addEventListener('touchstart', () => {
+                if (window.navigator.vibrate) {
+                    window.navigator.vibrate(10);
+                }
+            });
+        });
+    </script>
+</body></html>

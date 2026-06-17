@@ -1,0 +1,291 @@
+<!DOCTYPE html>
+
+<html class="dark" lang="es"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0, viewport-fit=cover" name="viewport"/>
+<title>Monitor de Alertas - Historial</title>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;600;700&amp;family=DM+Mono:wght@700&amp;family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@100..900&amp;display=swap" rel="stylesheet"/>
+<style>
+    .material-symbols-outlined {
+      font-variation-settings: 'FILL' 0, 'wght' 400, 'GRAD' 0, 'opsz' 24;
+    }
+    .custom-scrollbar::-webkit-scrollbar {
+      width: 4px;
+    }
+    .custom-scrollbar::-webkit-scrollbar-track {
+      background: #0a0e17;
+    }
+    .custom-scrollbar::-webkit-scrollbar-thumb {
+      background: #1f2d44;
+      border-radius: 10px;
+    }
+    .threat-ribbon-critical { border-left: 4px solid #ff6b00; }
+    .threat-ribbon-high { border-left: 4px solid #ffb3ad; }
+    .threat-ribbon-med { border-left: 4px solid #4edea3; }
+    
+    @keyframes slideIn {
+      from { opacity: 0; transform: translateY(10px); }
+      to { opacity: 1; transform: translateY(0); }
+    }
+    .animate-slide-in {
+      animation: slideIn 0.3s ease-out forwards;
+    }
+  </style>
+<script id="tailwind-config">
+    tailwind.config = {
+      darkMode: "class",
+      theme: {
+        extend: {
+          "colors": {
+                  "outline": "#a98a7d",
+                  "surface": "#0f131c",
+                  "secondary": "#4edea3",
+                  "on-tertiary-fixed": "#410004",
+                  "on-error": "#690005",
+                  "tertiary": "#ffb3ad",
+                  "on-surface": "#dfe2ef",
+                  "secondary-container": "#00a572",
+                  "tertiary-fixed": "#ffdad7",
+                  "surface-container-highest": "#31353f",
+                  "primary": "#ffb693",
+                  "on-secondary-container": "#00311f",
+                  "secondary-fixed": "#6ffbbe",
+                  "on-background": "#dfe2ef",
+                  "surface-container": "#1c1f29",
+                  "background": "#0f131c",
+                  "surface-dim": "#0f131c",
+                  "on-error-container": "#ffdad6",
+                  "secondary-fixed-dim": "#4edea3",
+                  "primary-fixed-dim": "#ffb693",
+                  "tertiary-fixed-dim": "#ffb3ad",
+                  "on-tertiary-fixed-variant": "#930013",
+                  "on-primary-fixed": "#351000",
+                  "inverse-on-surface": "#2c303a",
+                  "inverse-surface": "#dfe2ef",
+                  "on-secondary-fixed": "#002113",
+                  "surface-bright": "#353943",
+                  "error-container": "#93000a",
+                  "primary-fixed": "#ffdbcc",
+                  "tertiary-container": "#ff6762",
+                  "on-tertiary": "#68000a",
+                  "on-primary": "#561f00",
+                  "on-primary-fixed-variant": "#7a3000",
+                  "on-secondary-fixed-variant": "#005236",
+                  "outline-variant": "#5a4136",
+                  "on-tertiary-container": "#6a000b",
+                  "on-surface-variant": "#e2bfb0",
+                  "inverse-primary": "#a04100",
+                  "surface-tint": "#ffb693",
+                  "surface-container-high": "#262a34",
+                  "error": "#ffb4ab",
+                  "on-primary-container": "#572000",
+                  "surface-container-low": "#181b25",
+                  "primary-container": "#ff6b00",
+                  "surface-variant": "#31353f",
+                  "on-secondary": "#003824",
+                  "surface-container-lowest": "#0a0e17"
+          },
+          "borderRadius": {
+                  "DEFAULT": "0.25rem",
+                  "lg": "0.5rem",
+                  "xl": "0.75rem",
+                  "full": "9999px"
+          },
+          "spacing": {
+                  "md": "16px",
+                  "base": "4px",
+                  "xl": "32px",
+                  "gutter": "16px",
+                  "margin-mobile": "16px",
+                  "xs": "4px",
+                  "sm": "8px",
+                  "lg": "24px"
+          },
+          "fontFamily": {
+                  "headline-md": ["DM Sans"],
+                  "body-bold": ["DM Sans"],
+                  "display-lg": ["DM Sans"],
+                  "label-caps": ["DM Sans"],
+                  "body-base": ["DM Sans"],
+                  "stat-lg": ["DM Mono"]
+          },
+          "fontSize": {
+                  "headline-md": ["20px", {"lineHeight": "28px", "letterSpacing": "-0.01em", "fontWeight": "600"}],
+                  "body-bold": ["15px", {"lineHeight": "22px", "letterSpacing": "0", "fontWeight": "600"}],
+                  "display-lg": ["34px", {"lineHeight": "42px", "letterSpacing": "-0.02em", "fontWeight": "700"}],
+                  "label-caps": ["11px", {"lineHeight": "14px", "letterSpacing": "0.08em", "fontWeight": "700"}],
+                  "body-base": ["15px", {"lineHeight": "22px", "letterSpacing": "0", "fontWeight": "400"}],
+                  "stat-lg": ["28px", {"lineHeight": "34px", "letterSpacing": "-0.02em", "fontWeight": "700"}]
+          }
+        },
+      },
+    }
+  </script>
+<style>
+    body {
+      min-height: max(884px, 100dvh);
+    }
+  </style>
+</head>
+<body class="bg-background text-on-surface custom-scrollbar selection:bg-primary-container selection:text-on-primary-container">
+<!-- TopAppBar -->
+<header class="fixed top-0 w-full z-50 bg-surface dark:bg-surface-dim border-b border-outline-variant flex items-center justify-between px-margin-mobile h-14 w-full">
+<div class="flex items-center gap-sm active:scale-95 duration-100 cursor-pointer">
+<span class="material-symbols-outlined text-primary" data-icon="sensors">sensors</span>
+<h1 class="font-headline-md text-headline-md-mobile font-bold text-primary">Monitor de Alertas</h1>
+</div>
+<button class="flex items-center justify-center p-2 rounded-full hover:bg-surface-container-high transition-colors active:scale-95 duration-100">
+<span class="material-symbols-outlined text-primary" data-icon="account_circle">account_circle</span>
+</button>
+</header>
+<main class="pt-20 pb-24 px-margin-mobile min-h-screen max-w-lg mx-auto">
+<!-- Search and Filter Section -->
+<div class="mb-lg space-y-md">
+<div class="relative group">
+<span class="material-symbols-outlined absolute left-4 top-1/2 -translate-y-1/2 text-on-surface-variant" data-icon="search">search</span>
+<input class="w-full h-12 pl-12 pr-4 bg-surface-container border border-outline-variant rounded-xl text-body-base focus:ring-2 focus:ring-primary-container focus:border-primary-container outline-none transition-all placeholder:text-on-surface-variant" placeholder="Buscar registros..." type="text"/>
+</div>
+<!-- Filter Chips -->
+<div class="flex gap-sm overflow-x-auto pb-2 scrollbar-hide no-scrollbar">
+<button class="px-md py-sm bg-primary-container text-on-primary-container rounded-full font-label-caps text-label-caps flex-shrink-0 transition-all active:scale-95">TODOS LOS REGISTROS</button>
+<button class="px-md py-sm bg-surface-container border border-outline-variant text-on-surface-variant rounded-full font-label-caps text-label-caps flex-shrink-0 hover:bg-surface-container-high transition-all active:scale-95">CRÍTICOS</button>
+<button class="px-md py-sm bg-surface-container border border-outline-variant text-on-surface-variant rounded-full font-label-caps text-label-caps flex-shrink-0 hover:bg-surface-container-high transition-all active:scale-95">SISTEMA</button>
+<button class="px-md py-sm bg-surface-container border border-outline-variant text-on-surface-variant rounded-full font-label-caps text-label-caps flex-shrink-0 hover:bg-surface-container-high transition-all active:scale-95">SENSORES</button>
+</div>
+</div>
+<!-- Timeline Heading -->
+<div class="flex items-center justify-between mb-md">
+<h2 class="font-label-caps text-label-caps text-on-surface-variant uppercase tracking-widest">Registros Históricos</h2>
+<button class="flex items-center gap-xs text-primary font-label-caps text-label-caps">
+<span class="material-symbols-outlined text-[16px]" data-icon="filter_list">filter_list</span>
+        FILTRAR
+      </button>
+</div>
+<!-- Alert List -->
+<div class="space-y-md">
+<!-- Item 1: Critical -->
+<div class="bg-surface-container-low rounded-xl p-md threat-ribbon-critical border border-outline-variant/10 shadow-sm animate-slide-in" style="animation-delay: 0.1s;">
+<div class="flex justify-between items-start mb-sm">
+<span class="font-stat-lg text-headline-md text-error flex items-center gap-xs">
+<span class="material-symbols-outlined" data-icon="landslide" style="font-variation-settings: 'FILL' 1;">landslide</span>
+            DESLIZAMIENTO_DETECTADO
+          </span>
+<span class="font-stat-lg text-[13px] text-on-surface-variant">12:44:02</span>
+</div>
+<p class="font-body-base text-on-surface-variant mb-md">Movimiento de masa detectado en el Sector 7-B superando el umbral de seguridad. Protocolos de evacuación activados.</p>
+<div class="flex justify-between items-center pt-md border-t border-outline-variant/20">
+<div class="flex items-center gap-xs text-secondary font-label-caps text-label-caps">
+<span class="material-symbols-outlined text-[16px]" data-icon="check_circle">check_circle</span>
+            AUTO-RESUELTO
+          </div>
+<span class="font-label-caps text-label-caps text-on-surface-variant">22 OCT 2023</span>
+</div>
+</div>
+<!-- Item 2: Warning -->
+<div class="bg-surface-container-low rounded-xl p-md threat-ribbon-high border border-outline-variant/10 shadow-sm animate-slide-in" style="animation-delay: 0.2s;">
+<div class="flex justify-between items-start mb-sm">
+<span class="font-stat-lg text-headline-md text-tertiary flex items-center gap-xs">
+<span class="material-symbols-outlined" data-icon="warning">warning</span>
+            INESTABILIDAD_SUELO
+          </span>
+<span class="font-stat-lg text-[13px] text-on-surface-variant">09:12:45</span>
+</div>
+<p class="font-body-base text-on-surface-variant mb-md">Los sensores de humedad indican saturación crítica del terreno en el flanco sur. Riesgo inminente de desprendimiento.</p>
+<div class="flex justify-between items-center pt-md border-t border-outline-variant/20">
+<div class="flex items-center gap-xs text-on-surface-variant font-label-caps text-label-caps">
+<span class="material-symbols-outlined text-[16px]" data-icon="person">person</span>
+            ANULACIÓN MANUAL
+          </div>
+<span class="font-label-caps text-label-caps text-on-surface-variant">22 OCT 2023</span>
+</div>
+</div>
+<!-- Item 3: Info/Low -->
+<div class="bg-surface-container-low rounded-xl p-md threat-ribbon-med border border-outline-variant/10 shadow-sm animate-slide-in" style="animation-delay: 0.3s;">
+<div class="flex justify-between items-start mb-sm">
+<span class="font-stat-lg text-headline-md text-secondary flex items-center gap-xs">
+<span class="material-symbols-outlined" data-icon="info">info</span>
+            TERRENO_ESTABLE
+          </span>
+<span class="font-stat-lg text-[13px] text-on-surface-variant">04:30:11</span>
+</div>
+<p class="font-body-base text-on-surface-variant mb-md">Se restablece la estabilidad estructural en la Zona de Mitigación A tras trabajos de refuerzo y drenaje.</p>
+<div class="flex justify-between items-center pt-md border-t border-outline-variant/20">
+<div class="flex items-center gap-xs text-secondary font-label-caps text-label-caps">
+<span class="material-symbols-outlined text-[16px]" data-icon="verified">verified</span>
+            CERRADO
+          </div>
+<span class="font-label-caps text-label-caps text-on-surface-variant">21 OCT 2023</span>
+</div>
+</div>
+<!-- Item 4: Critical -->
+<div class="bg-surface-container-low rounded-xl p-md threat-ribbon-critical border border-outline-variant/10 shadow-sm animate-slide-in" style="animation-delay: 0.4s;">
+<div class="flex justify-between items-start mb-sm">
+<span class="font-stat-lg text-headline-md text-error flex items-center gap-xs">
+<span class="material-symbols-outlined" data-icon="gpp_maybe" style="font-variation-settings: 'FILL' 1;">gpp_maybe</span>
+            FALLA_CONTENCIÓN
+          </span>
+<span class="font-stat-lg text-[13px] text-on-surface-variant">23:01:59</span>
+</div>
+<p class="font-body-base text-on-surface-variant mb-md">Grietas detectadas en el muro de contención perimetral Nodo 4. Movimiento de tierras acelerado.</p>
+<div class="flex justify-between items-center pt-md border-t border-outline-variant/20">
+<div class="flex items-center gap-xs text-secondary font-label-caps text-label-caps">
+<span class="material-symbols-outlined text-[16px]" data-icon="shield">shield</span>
+            SEGURIDAD ACTIVADA
+          </div>
+<span class="font-label-caps text-label-caps text-on-surface-variant">20 OCT 2023</span>
+</div>
+</div>
+</div>
+<!-- Empty State / Load More -->
+<div class="mt-xl text-center">
+<button class="px-xl py-md bg-surface-container border border-outline-variant rounded-full font-body-bold text-on-surface-variant hover:text-primary transition-colors active:scale-95">
+        Cargar registros anteriores
+      </button>
+</div>
+</main>
+<!-- BottomNavBar -->
+<nav class="fixed bottom-0 w-full z-50 pb-safe bg-surface-container-lowest border-t border-outline-variant shadow-lg flex justify-around items-center h-16 w-full px-4">
+<a class="flex flex-col items-center justify-center text-on-surface-variant dark:text-on-surface-variant hover:bg-surface-container-high transition-colors active:scale-90 transition-transform" href="#">
+<span class="material-symbols-outlined" data-icon="notifications">notifications</span>
+<span class="font-label-caps text-label-caps">Alertas</span>
+</a>
+<a class="flex flex-col items-center justify-center text-on-surface-variant dark:text-on-surface-variant hover:bg-surface-container-high transition-colors active:scale-90 transition-transform" href="#">
+<span class="material-symbols-outlined" data-icon="settings_input_component">settings_input_component</span>
+<span class="font-label-caps text-label-caps">Sensores</span>
+</a>
+<a class="flex flex-col items-center justify-center text-secondary dark:text-secondary-fixed-dim font-bold hover:bg-surface-container-high transition-colors active:scale-90 transition-transform" href="#">
+<span class="material-symbols-outlined" data-icon="history" style="font-variation-settings: 'FILL' 1;">history</span>
+<span class="font-label-caps text-label-caps">Historial</span>
+</a>
+<a class="flex flex-col items-center justify-center text-on-surface-variant dark:text-on-surface-variant hover:bg-surface-container-high transition-colors active:scale-90 transition-transform" href="#">
+<span class="material-symbols-outlined" data-icon="settings">settings</span>
+<span class="font-label-caps text-label-caps">Ajustes</span>
+</a>
+</nav>
+<script>
+    // Micro-interaction for search input focus
+    const searchInput = document.querySelector('input');
+    searchInput.addEventListener('focus', () => {
+      searchInput.parentElement.classList.add('scale-[1.02]');
+    });
+    searchInput.addEventListener('blur', () => {
+      searchInput.parentElement.classList.remove('scale-[1.02]');
+    });
+
+    // Simple interaction for chips
+    const chips = document.querySelectorAll('.flex.gap-sm button');
+    chips.forEach(chip => {
+      chip.addEventListener('click', () => {
+        chips.forEach(c => {
+          c.classList.remove('bg-primary-container', 'text-on-primary-container');
+          c.classList.add('bg-surface-container', 'border', 'border-outline-variant', 'text-on-surface-variant');
+        });
+        chip.classList.remove('bg-surface-container', 'border', 'border-outline-variant', 'text-on-surface-variant');
+        chip.classList.add('bg-primary-container', 'text-on-primary-container');
+      });
+    });
+  </script>
+</body></html>

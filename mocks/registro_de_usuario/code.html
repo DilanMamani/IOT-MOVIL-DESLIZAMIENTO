@@ -1,0 +1,245 @@
+<!DOCTYPE html>
+
+<html class="dark" lang="es"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<title>TerraGuard Mobile - Registro</title>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;600;700&amp;family=DM+Mono:wght@700&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<script id="tailwind-config">
+      tailwind.config = {
+        darkMode: "class",
+        theme: {
+          extend: {
+            "colors": {
+                    "secondary": "#4edea3",
+                    "tertiary-fixed": "#ffdad7",
+                    "tertiary-fixed-dim": "#ffb3ad",
+                    "surface-container-high": "#262a34",
+                    "primary": "#ffb693",
+                    "outline-variant": "#5a4136",
+                    "primary-fixed": "#ffdbcc",
+                    "on-primary-fixed": "#351000",
+                    "surface-bright": "#353943",
+                    "on-secondary-fixed": "#002113",
+                    "secondary-fixed": "#6ffbbe",
+                    "tertiary-container": "#ff6762",
+                    "tertiary": "#ffb3ad",
+                    "on-secondary": "#003824",
+                    "surface-tint": "#ffb693",
+                    "on-primary": "#561f00",
+                    "surface-container-highest": "#31353f",
+                    "on-primary-fixed-variant": "#7a3000",
+                    "surface-container": "#1c1f29",
+                    "error-container": "#93000a",
+                    "surface-container-low": "#181b25",
+                    "primary-fixed-dim": "#ffb693",
+                    "on-surface": "#dfe2ef",
+                    "primary-container": "#ff6b00",
+                    "secondary-container": "#00a572",
+                    "on-error": "#690005",
+                    "on-secondary-container": "#00311f",
+                    "on-error-container": "#ffdad6",
+                    "background": "#0f131c",
+                    "surface-variant": "#31353f",
+                    "on-tertiary-fixed": "#410004",
+                    "inverse-primary": "#a04100",
+                    "surface": "#0f131c",
+                    "secondary-fixed-dim": "#4edea3",
+                    "outline": "#a98a7d",
+                    "on-tertiary": "#68000a",
+                    "on-background": "#dfe2ef",
+                    "on-surface-variant": "#e2bfb0",
+                    "inverse-surface": "#dfe2ef",
+                    "surface-container-lowest": "#0a0e17",
+                    "on-tertiary-fixed-variant": "#930013",
+                    "on-primary-container": "#572000",
+                    "on-tertiary-container": "#6a000b",
+                    "surface-dim": "#0f131c",
+                    "on-secondary-fixed-variant": "#005236",
+                    "inverse-on-surface": "#2c303a",
+                    "error": "#ffb4ab"
+            },
+            "borderRadius": {
+                    "DEFAULT": "0.25rem",
+                    "lg": "0.5rem",
+                    "xl": "0.75rem",
+                    "full": "9999px"
+            },
+            "spacing": {
+                    "xs": "4px",
+                    "gutter": "16px",
+                    "base": "4px",
+                    "lg": "24px",
+                    "xl": "32px",
+                    "md": "16px",
+                    "margin-mobile": "16px",
+                    "sm": "8px"
+            },
+            "fontFamily": {
+                    "body-base": ["DM Sans"],
+                    "stat-lg": ["DM Mono"],
+                    "display-lg": ["DM Sans"],
+                    "body-bold": ["DM Sans"],
+                    "label-caps": ["DM Sans"],
+                    "headline-md": ["DM Sans"]
+            },
+            "fontSize": {
+                    "body-base": ["15px", {"lineHeight": "22px", "letterSpacing": "0", "fontWeight": "400"}],
+                    "stat-lg": ["28px", {"lineHeight": "34px", "letterSpacing": "-0.02em", "fontWeight": "700"}],
+                    "display-lg": ["34px", {"lineHeight": "42px", "letterSpacing": "-0.02em", "fontWeight": "700"}],
+                    "body-bold": ["15px", {"lineHeight": "22px", "letterSpacing": "0", "fontWeight": "600"}],
+                    "label-caps": ["11px", {"lineHeight": "14px", "letterSpacing": "0.08em", "fontWeight": "700"}],
+                    "headline-md-mobile": ["20px", {"lineHeight": "28px", "letterSpacing": "-0.01em", "fontWeight": "600"}],
+                    "headline-md": ["24px", {"lineHeight": "32px", "letterSpacing": "-0.01em", "fontWeight": "600"}]
+            }
+          },
+        },
+      }
+    </script>
+<style>
+        body {
+            background-color: #090d16;
+            color: #dfe2ef;
+        }
+        .tech-outline {
+            border: 1px solid #1f2d44;
+        }
+        .glow-orange:focus-within {
+            box-shadow: 0 0 8px 0 rgba(255, 107, 0, 0.2);
+            border-color: #ff6b00;
+        }
+        .material-symbols-outlined {
+            font-variation-settings: 'FILL' 0, 'wght' 400, 'GRAD' 0, 'opsz' 24;
+        }
+    </style>
+<style>
+    body {
+      min-height: max(884px, 100dvh);
+    }
+  </style>
+</head>
+<body class="font-body-base text-body-base overflow-x-hidden antialiased">
+<!-- Top Bar Placeholder (Static) -->
+<header class="fixed top-0 w-full z-50 bg-surface dark:bg-surface-dim border-b border-outline-variant flex items-center justify-between px-margin-mobile h-14">
+<div class="flex items-center gap-2">
+<span class="material-symbols-outlined text-primary" data-icon="sensors">sensors</span>
+<span class="font-headline-md text-headline-md-mobile font-bold text-primary">TerraGuard</span>
+</div>
+<div class="p-2 rounded-full hover:bg-surface-container-high transition-colors">
+<span class="material-symbols-outlined text-on-surface-variant" data-icon="help">help</span>
+</div>
+</header>
+<main class="min-h-screen pt-20 pb-12 px-margin-mobile flex flex-col justify-center max-w-md mx-auto relative">
+<!-- Subtle Ambient Background -->
+<div class="absolute inset-0 -z-10 overflow-hidden pointer-events-none">
+
+</div>
+<div class="mb-8">
+<h1 class="font-display-lg text-display-lg text-on-surface mb-2">Crear cuenta</h1>
+<p class="text-on-surface-variant font-body-base">Únete a la red de monitoreo ambiental inteligente.</p>
+</div>
+<form class="space-y-4" onsubmit="return false">
+<!-- Full Name -->
+<div class="space-y-1.5">
+<label class="text-label-caps font-label-caps text-on-surface-variant px-1" for="fullName">NOMBRE COMPLETO</label>
+<div class="relative flex items-center tech-outline bg-surface-container-low rounded-xl glow-orange transition-all">
+<span class="material-symbols-outlined absolute left-4 text-on-surface-variant" data-icon="person">person</span>
+<input class="w-full bg-transparent border-none py-3.5 pl-12 pr-4 text-on-surface focus:ring-0 placeholder:text-surface-bright" id="fullName" name="fullName" placeholder="Ej. Juan Pérez" type="text"/>
+</div>
+</div>
+<!-- Email -->
+<div class="space-y-1.5">
+<label class="text-label-caps font-label-caps text-on-surface-variant px-1" for="email">CORREO ELECTRÓNICO</label>
+<div class="relative flex items-center tech-outline bg-surface-container-low rounded-xl glow-orange transition-all">
+<span class="material-symbols-outlined absolute left-4 text-on-surface-variant" data-icon="alternate_email">alternate_email</span>
+<input class="w-full bg-transparent border-none py-3.5 pl-12 pr-4 text-on-surface focus:ring-0 placeholder:text-surface-bright" id="email" name="email" placeholder="usuario@terraguard.io" type="email"/>
+</div>
+</div>
+<!-- Password -->
+<div class="space-y-1.5">
+<label class="text-label-caps font-label-caps text-on-surface-variant px-1" for="password">CONTRASEÑA</label>
+<div class="relative flex items-center tech-outline bg-surface-container-low rounded-xl glow-orange transition-all">
+<span class="material-symbols-outlined absolute left-4 text-on-surface-variant" data-icon="lock_open">lock_open</span>
+<input class="w-full bg-transparent border-none py-3.5 pl-12 pr-12 text-on-surface focus:ring-0 placeholder:text-surface-bright" id="password" name="password" placeholder="••••••••" type="password"/>
+<button class="absolute right-4 text-on-surface-variant hover:text-primary transition-colors" type="button">
+<span class="material-symbols-outlined" data-icon="visibility">visibility</span>
+</button>
+</div>
+</div>
+<!-- Confirm Password -->
+<div class="space-y-1.5">
+<label class="text-label-caps font-label-caps text-on-surface-variant px-1" for="confirmPassword">CONFIRMAR CONTRASEÑA</label>
+<div class="relative flex items-center tech-outline bg-surface-container-low rounded-xl glow-orange transition-all">
+<span class="material-symbols-outlined absolute left-4 text-on-surface-variant" data-icon="verified_user">verified_user</span>
+<input class="w-full bg-transparent border-none py-3.5 pl-12 pr-4 text-on-surface focus:ring-0 placeholder:text-surface-bright" id="confirmPassword" name="confirmPassword" placeholder="••••••••" type="password"/>
+</div>
+</div>
+<!-- Terms and Conditions -->
+<div class="flex items-start gap-3 py-2 px-1">
+<div class="flex items-center h-5">
+<input class="w-5 h-5 rounded border-outline-variant bg-surface-container-low text-primary-container focus:ring-primary-container focus:ring-offset-background cursor-pointer" id="terms" type="checkbox"/>
+</div>
+<label class="text-body-base text-on-surface-variant select-none" for="terms">
+                    Acepto los <a class="text-primary hover:underline" href="#">Términos y Condiciones</a> y la <a class="text-primary hover:underline" href="#">Política de Privacidad</a>.
+                </label>
+</div>
+<!-- Primary Action -->
+<div class="pt-4">
+<button class="w-full h-[52px] bg-primary-container text-on-primary-container font-body-bold text-body-bold rounded-full flex items-center justify-center gap-2 active:scale-95 transition-all shadow-lg shadow-primary-container/20">
+                    Registrarse
+                    <span class="material-symbols-outlined" data-icon="arrow_forward">arrow_forward</span>
+</button>
+</div>
+</form>
+<div class="mt-12 text-center">
+<p class="text-on-surface-variant font-body-base">
+                ¿Ya tienes una cuenta? 
+                <a class="text-secondary font-body-bold ml-1 hover:underline" href="#">Inicia sesión</a>
+</p>
+</div>
+<!-- System Status Decorative Element -->
+<div class="mt-12 p-4 rounded-xl tech-outline bg-surface-container-low border-l-4 border-l-secondary">
+<div class="flex justify-between items-center mb-2">
+<span class="text-label-caps font-label-caps text-secondary">SISTEMA LISTO</span>
+<span class="font-stat-lg text-[12px] text-on-surface-variant">NODE_0492</span>
+</div>
+<div class="h-1 w-full bg-surface-container-high rounded-full overflow-hidden">
+<div class="h-full bg-secondary w-full opacity-40"></div>
+</div>
+</div>
+</main>
+<!-- Footer Security Badge -->
+<footer class="w-full py-6 px-margin-mobile flex flex-col items-center gap-2 opacity-60">
+<div class="flex items-center gap-2 text-label-caps font-label-caps">
+<span class="material-symbols-outlined text-[14px]" data-icon="shield">shield</span>
+            ENCRIPTACIÓN DE GRADO MILITAR
+        </div>
+<p class="text-[10px] font-stat-lg">© 2024 TERRAGUARD PROTOCOL</p>
+</footer>
+<script>
+        // Micro-interaction for the eye toggle
+        document.querySelector('[data-icon="visibility"]').parentElement.addEventListener('click', function() {
+            const input = document.getElementById('password');
+            const icon = this.querySelector('.material-symbols-outlined');
+            if (input.type === 'password') {
+                input.type = 'text';
+                icon.textContent = 'visibility_off';
+            } else {
+                input.type = 'password';
+                icon.textContent = 'visibility';
+            }
+        });
+
+        // Simple button active state visual
+        const regBtn = document.querySelector('button.bg-primary-container');
+        regBtn.addEventListener('mousedown', () => {
+            regBtn.style.transform = 'scale(0.98)';
+        });
+        regBtn.addEventListener('mouseup', () => {
+            regBtn.style.transform = 'scale(1)';
+        });
+    </script>
+</body></html>
