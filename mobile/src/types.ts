@@ -224,3 +224,15 @@ export type ChatHistoryItem = {
   role: "user" | "model";
   content: string;
 }
+
+export type RiskPredictionLevel = "normal" | "warning" | "danger";
+
+export type LstmPrediction = {
+  disponible: boolean;
+  nivel_predicho?: RiskPredictionLevel;
+  proba_riesgo_futuro?: number;
+  horizonte_segundos?: number;
+  horizonte_lecturas?: number;
+  lecturas_usadas?: number;
+  mensaje?: string;
+};
