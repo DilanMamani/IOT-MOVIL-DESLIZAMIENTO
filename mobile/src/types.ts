@@ -126,6 +126,78 @@ export interface RiskHistoryPoint {
   risk_score: number;
 }
 
+export type ReportType =
+  | "grieta_suelo"
+  | "grieta_vivienda"
+  | "hundimiento"
+  | "filtracion_agua"
+  | "deslizamiento"
+  | "caida_muro"
+  | "derrumbe"
+  | "otro";
+
+export type ReportUrgency = "baja" | "media" | "alta" | "critica";
+export type ReportStatus = "pendiente" | "en_revision" | "atendido" | "descartado";
+
+// Field names match the backend DB schema
+export interface Report {
+  id: string;
+  user_id: string;
+  user_name?: string;
+  incident_type: ReportType;
+  description: string;
+  latitude: string | number;
+  longitude: string | number;
+  location_name: string | null;
+  urgency_level: ReportUrgency;
+  status: ReportStatus;
+  photo_url: string | null;
+  reported_at: string;
+  updated_at?: string;
+}
+
+export interface MapReport {
+  id: string;
+  user_name: string;
+  incident_type: ReportType;
+  description: string;
+  latitude: number | string;
+  longitude: number | string;
+  location_name: string | null;
+  urgency_level: ReportUrgency;
+  status: ReportStatus;
+  photo_url: string | null;
+  reported_at: string;
+  updated_at?: string;
+  distance_km?: number;
+}
+
+export interface MapDevice {
+  id: string;
+  code: string;
+  name: string;
+  latitude: number;
+  longitude: number;
+  status: "active" | "inactive" | "maintenance";
+  risk_level: RiskLevel;
+}
+
+export interface WeatherCurrent {
+  temperature: number;
+  humidity: number;
+  weatherCode: number;
+  windSpeed: number;
+  description: string;
+  icon: string; // MaterialIcons name
+}
+
+export interface WeatherHour {
+  time: string;
+  temperature: number;
+  weatherCode: number;
+  icon: string; // MaterialIcons name
+}
+
 export interface HistorySeries {
   times: string[];
   soil: number[];

@@ -1,5 +1,4 @@
-import * as SecureStore from "expo-secure-store";
-import { Platform } from "react-native";
+import { storageGet } from "./storage";
 
 const API_URL = process.env.EXPO_PUBLIC_API_URL ?? "http://localhost:3000";
 const SESSION_KEY = "terraguard_auth_session";

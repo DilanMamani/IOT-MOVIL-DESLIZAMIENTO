@@ -9,7 +9,7 @@ import {
 } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { MaterialIcons } from "@expo/vector-icons";
-import { storageGet, storageSet } from "../../api/http";
+import { storageGet, storageSet } from "../../api/storage";
 import { ScreenHeader } from "../../components/ScreenHeader";
 import { PillButton } from "../../components/PillButton";
 import { ToggleSwitch } from "../../components/ToggleSwitch";
@@ -85,11 +85,9 @@ export function AlertRulesScreen() {
   };
 
   useEffect(() => {
-    storageGet(CHANNEL_PREFS_KEY)
-      .then((raw) => {
-        if (raw) setChannelPrefs(JSON.parse(raw));
-      })
-      .catch(() => {});
+    storageGet(CHANNEL_PREFS_KEY).then((raw) => {
+      if (raw) setChannelPrefs(JSON.parse(raw));
+    });
   }, []);
 
   useEffect(() => {
@@ -101,7 +99,7 @@ export function AlertRulesScreen() {
   const toggleChannel = (key: string) => {
     const next = { ...channelPrefs, [key]: !channelPrefs[key] };
     setChannelPrefs(next);
-    storageSet(CHANNEL_PREFS_KEY, JSON.stringify(next)).catch(() => {});
+    storageSet(CHANNEL_PREFS_KEY, JSON.stringify(next));
   };
 
   const onSaveRule = async () => {
