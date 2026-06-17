@@ -1,4 +1,4 @@
-# TerraGuard Mobile
+# SlideWatch Mobile
 
 App móvil (React Native + Expo) para el monitoreo en tiempo real de sensores IoT de deslizamiento de tierra, construida a partir de los mocks de diseño de Google Stitch.
 

@@ -29,20 +29,26 @@ interface AlertCardProps {
 
 export function AlertCard({ alert, onDismiss, onMute, busy }: AlertCardProps) {
   const isCritical = alert.level === "danger";
-  const ribbon = isCritical ? "bg-primary-container" : "bg-tertiary-container";
-  const iconBg = isCritical ? "bg-primary-container/20" : "bg-tertiary-container/20";
+  const ribbonColor = isCritical ? "#743014" : "#9D9167";
+  const accentColor = isCritical ? "#743014" : "#84592B";
   const icon = GROUP_ICON[alert.metric_code ?? ""] ?? "warning";
 
   return (
-    <View className="relative bg-surface-container rounded-lg border border-outline-variant overflow-hidden">
-      <View className={`absolute left-0 top-0 bottom-0 w-1 ${ribbon}`} />
-      <View className="p-md space-y-md ml-1">
-        <View className="flex-row justify-between items-start">
-          <View className="flex-row items-center gap-sm">
-            <View className={`w-8 h-8 rounded-md items-center justify-center ${iconBg}`}>
-              <MaterialIcons name={icon} size={18} color={isCritical ? "#ff6b00" : "#ff6762"} />
+    <View className="relative bg-surface-container-low rounded-lg border border-outline-variant overflow-hidden">
+      <View
+        style={{ backgroundColor: ribbonColor }}
+        className="absolute left-0 top-0 bottom-0 w-1"
+      />
+      <View className="p-md ml-1">
+        <View className="flex-row justify-between items-start mb-3">
+          <View className="flex-row items-center gap-sm flex-1">
+            <View
+              style={{ backgroundColor: isCritical ? "#F5E0D6" : "#E8E2CC" }}
+              className="w-8 h-8 rounded-md items-center justify-center"
+            >
+              <MaterialIcons name={icon} size={18} color={accentColor} />
             </View>
-            <View>
+            <View className="flex-1">
               <Text className="font-sans-bold text-on-surface">{alert.title}</Text>
               <Text className="font-mono text-[10px] text-on-surface-variant">
                 NODO: {alert.device_code}
@@ -50,15 +56,14 @@ export function AlertCard({ alert, onDismiss, onMute, busy }: AlertCardProps) {
             </View>
           </View>
           <Text
-            className={`font-mono-bold text-[12px] ${
-              isCritical ? "text-primary-container" : "text-tertiary-container"
-            }`}
+            style={{ color: accentColor }}
+            className="font-mono-bold text-[12px]"
           >
             {formatTime(alert.created_at)}
           </Text>
         </View>
 
-        <View className="flex-row justify-between py-sm border-t border-b border-outline-variant/30">
+        <View className="flex-row justify-between py-sm border-t border-b border-outline-variant/40 mb-3">
           <View>
             <Text className="font-sans-bold text-[10px] text-on-surface-variant uppercase">
               Ubicación
@@ -72,9 +77,8 @@ export function AlertCard({ alert, onDismiss, onMute, busy }: AlertCardProps) {
               {alert.metric_name ?? "Lectura"}
             </Text>
             <Text
-              className={`font-mono-bold text-[20px] ${
-                isCritical ? "text-primary-container" : "text-tertiary-container"
-              }`}
+              style={{ color: accentColor }}
+              className="font-mono-bold text-[20px]"
             >
               {formatNumber(alert.current_value)}
             </Text>
@@ -83,13 +87,13 @@ export function AlertCard({ alert, onDismiss, onMute, busy }: AlertCardProps) {
 
         <View className="flex-row gap-sm">
           <PillButton
-            label="DESCARTAR"
+            label="Descartar"
             variant={isCritical ? "primary" : "ghost"}
             onPress={onDismiss}
             loading={busy}
             flex
           />
-          <PillButton label="SILENCIAR" variant="ghost" onPress={onMute} flex />
+          <PillButton label="Silenciar" variant="ghost" onPress={onMute} flex />
         </View>
       </View>
     </View>
