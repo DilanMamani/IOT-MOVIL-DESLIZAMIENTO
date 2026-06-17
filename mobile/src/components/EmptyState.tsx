@@ -9,11 +9,14 @@ interface EmptyStateProps {
 
 export function EmptyState({ icon, title, description }: EmptyStateProps) {
   return (
-    <View className="w-full p-lg rounded-xl bg-secondary-container/10 border border-secondary/20 items-center justify-center space-y-sm">
-      <View className="w-16 h-16 rounded-full bg-secondary/20 items-center justify-center">
-        <MaterialIcons name={icon} size={32} color="#4edea3" />
+    <View className="w-full p-lg rounded-xl bg-secondary-container border border-secondary/25 items-center">
+      <View
+        style={{ backgroundColor: "#E8E2CC" }}
+        className="w-16 h-16 rounded-full items-center justify-center mb-3"
+      >
+        <MaterialIcons name={icon} size={32} color="#84592B" />
       </View>
-      <Text className="font-sans-bold text-[20px] text-secondary text-center">
+      <Text className="font-sans-bold text-[18px] text-on-surface text-center mb-1">
         {title}
       </Text>
       {description ? (
