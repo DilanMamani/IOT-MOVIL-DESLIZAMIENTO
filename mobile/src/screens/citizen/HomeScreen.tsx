@@ -16,6 +16,8 @@ import * as dashboardApi from "../../api/dashboard";
 import * as reportsApi from "../../api/reports";
 import { fetchWeather } from "../../api/weather";
 import type { DashboardSnapshot, Report, WeatherCurrent, RiskLevel } from "../../types";
+import { useRiskHistory } from "../../hooks/useRiskHistory";
+import { RiskAlertsCard } from "../../components/RiskAlertsCard";
 
 const TERRACOTA = "#C4622D";
 const DARK_PANEL = "#2C1A0E";
@@ -53,6 +55,8 @@ const REPORT_TYPE_LABELS: Record<string, string> = {
 export function HomeScreen() {
   const { user } = useAuth();
   const navigation = useNavigation<any>();
+  const isAdmin = user?.role === "admin";
+  const { rows: riskHistory } = useRiskHistory();
 
   const [snapshot, setSnapshot] = useState<DashboardSnapshot | null>(null);
   const [reports, setReports] = useState<Report[]>([]);
@@ -213,6 +217,11 @@ export function HomeScreen() {
           )}
         </View>
 
+        <View style={s.section}>
+          <Text style={s.sectionTitle}>Últimas alertas de riesgo</Text>
+          <RiskAlertsCard riskHistory={riskHistory} isAdmin={false} />
+        </View>
+        
         <View style={{ height: 100 }} />
       </ScrollView>
 

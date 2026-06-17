@@ -10,10 +10,12 @@ import { SafeAreaView } from "react-native-safe-area-context";
 import { MaterialIcons } from "@expo/vector-icons";
 import { useState, useEffect, useCallback } from "react";
 import { fetchWeather } from "../../api/weather";
-import { apiRequest } from "../../api/http";
+import { useRiskHistory } from "../../hooks/useRiskHistory";
+import { getOpenAlerts } from "../../api/alerts";
 import type { WeatherData } from "../../api/weather";
 import type { RiskHistoryPoint, RiskLevel, Alert } from "../../types";
-
+import { RiskAlertsCard } from "../../components/RiskAlertsCard";
+import { useAuth } from "../../context/AuthContext";
 const TERRACOTA = "#C4622D";
 const DARK_PANEL = "#2C1A0E";
 const CREAM = "#FAF7F2";
@@ -41,20 +43,19 @@ function formatAlertTime(iso: string) {
 
 export function WeatherScreen() {
   const [weather, setWeather] = useState<WeatherData | null>(null);
-  const [riskHistory, setRiskHistory] = useState<RiskHistoryPoint[]>([]);
   const [alerts, setAlerts] = useState<Alert[]>([]);
   const [loading, setLoading] = useState(true);
   const [refreshing, setRefreshing] = useState(false);
 
+  //const { rows: riskHistory, loading: riskLoading, refresh: refreshRisk } = useRiskHistory();
+  const { rows: riskHistory, loading: riskLoading, refresh: refreshRisk } = useRiskHistory();
   const load = useCallback(async () => {
     try {
-      const [wx, rh, al] = await Promise.allSettled([
+      const [wx, al] = await Promise.allSettled([
         fetchWeather(),
-        apiRequest<RiskHistoryPoint[]>("/api/risk-history", { query: { range: "24h" } }),
-        apiRequest<Alert[]>("/api/alerts/open"),
+        getOpenAlerts(undefined, "24h"),
       ]);
       if (wx.status === "fulfilled") setWeather(wx.value);
-      if (rh.status === "fulfilled") setRiskHistory(rh.value);
       if (al.status === "fulfilled") setAlerts(Array.isArray(al.value) ? al.value : []);
     } finally {
       setLoading(false);
@@ -64,8 +65,11 @@ export function WeatherScreen() {
 
   useEffect(() => { load(); }, [load]);
 
-  const onRefresh = () => { setRefreshing(true); load(); };
-
+  const onRefresh = () => {
+    setRefreshing(true);
+    refreshRisk();
+    load();
+  };
   const latestRisk: RiskLevel = riskHistory.length > 0 ? riskHistory[riskHistory.length - 1].risk_level : "normal";
   const risk = riskConfig(latestRisk);
 
@@ -247,6 +251,11 @@ export function WeatherScreen() {
             </View>
           </View>
         )}
+        <View style={s.section}>
+          <Text style={s.sectionTitle}>Últimas alertas de riesgo</Text>
+          <RiskAlertsCard riskHistory={riskHistory} isAdmin={true} />
+        </View>
+
 
         <View style={{ height: 32 }} />
       </ScrollView>
