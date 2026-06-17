@@ -70,6 +70,7 @@ export function ReportScreen() {
   const [loading, setLoading] = useState(false);
   const [showTypePicker, setShowTypePicker] = useState(false);
   const [showPhotoMenu, setShowPhotoMenu] = useState(false);
+  const [errors, setErrors] = useState<{ type?: string; description?: string }>({});
 
   const selectedType = INCIDENT_TYPES.find((t) => t.value === incidentType);
 
@@ -144,14 +145,14 @@ export function ReportScreen() {
   };
 
   const handleSubmit = async () => {
-    if (!incidentType) {
-      Alert.alert("Campo requerido", "Selecciona el tipo de incidente.");
+    const newErrors: typeof errors = {};
+    if (!incidentType) newErrors.type = "Selecciona el tipo de incidente";
+    if (!description.trim()) newErrors.description = "La descripción es obligatoria";
+    if (Object.keys(newErrors).length > 0) {
+      setErrors(newErrors);
       return;
     }
-    if (!description.trim()) {
-      Alert.alert("Campo requerido", "Agrega una descripción del incidente.");
-      return;
-    }
+    setErrors({});
 
     setLoading(true);
     try {
@@ -210,7 +211,11 @@ export function ReportScreen() {
 
         {/* Tipo */}
         <Text style={s.label}>Tipo de incidente *</Text>
-        <TouchableOpacity style={s.selector} onPress={() => setShowTypePicker(true)} activeOpacity={0.8}>
+        <TouchableOpacity
+          style={[s.selector, errors.type && s.fieldError]}
+          onPress={() => { setShowTypePicker(true); setErrors((e) => ({ ...e, type: undefined })); }}
+          activeOpacity={0.8}
+        >
           {selectedType ? (
             <View style={s.selectorInner}>
               <MaterialIcons name={selectedType.icon as any} size={20} color={TERRACOTA} />
@@ -219,21 +224,33 @@ export function ReportScreen() {
           ) : (
             <Text style={[s.selectorText, { color: TEXT_SECONDARY }]}>Seleccionar tipo...</Text>
           )}
-          <MaterialIcons name="keyboard-arrow-down" size={22} color={TEXT_SECONDARY} />
+          <MaterialIcons name="keyboard-arrow-down" size={22} color={errors.type ? "#D94F4F" : TEXT_SECONDARY} />
         </TouchableOpacity>
+        {errors.type && (
+          <View style={s.errorRow}>
+            <MaterialIcons name="error-outline" size={14} color="#D94F4F" />
+            <Text style={s.errorMsg}>{errors.type}</Text>
+          </View>
+        )}
 
         {/* Descripción */}
-        <Text style={s.label}>Descripción *</Text>
+        <Text style={[s.label, { marginTop: 4 }]}>Descripción *</Text>
         <TextInput
-          style={s.textarea}
+          style={[s.textarea, errors.description && s.fieldError]}
           placeholder="Describe lo que observas: grietas, movimiento, ruidos, etc."
           placeholderTextColor={TEXT_SECONDARY}
           multiline
           numberOfLines={4}
           textAlignVertical="top"
           value={description}
-          onChangeText={setDescription}
+          onChangeText={(t) => { setDescription(t); if (t.trim()) setErrors((e) => ({ ...e, description: undefined })); }}
         />
+        {errors.description && (
+          <View style={[s.errorRow, { marginTop: -14 }]}>
+            <MaterialIcons name="error-outline" size={14} color="#D94F4F" />
+            <Text style={s.errorMsg}>{errors.description}</Text>
+          </View>
+        )}
 
         {/* GPS */}
         <Text style={s.label}>Ubicación GPS</Text>
@@ -454,4 +471,8 @@ const s = StyleSheet.create({
     paddingVertical: 16, borderBottomWidth: 1, borderBottomColor: CREAM_DEEP,
   },
   photoMenuTxt: { fontSize: 16, color: TEXT_PRIMARY, fontFamily: "DMSans_400Regular" },
+
+  fieldError: { borderColor: "#D94F4F", borderWidth: 1.5 },
+  errorRow: { flexDirection: "row", alignItems: "center", gap: 5, marginBottom: 14, marginTop: 4 },
+  errorMsg: { fontSize: 12, color: "#D94F4F", fontFamily: "DMSans_400Regular" },
 });

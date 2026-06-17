@@ -8,8 +8,9 @@ import {
   ActivityIndicator,
   Linking,
   Platform,
+  Image,
 } from "react-native";
-import React, { createElement } from "react";
+import { createElement } from "react";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { MaterialIcons } from "@expo/vector-icons";
 import { useState, useEffect, useCallback, useMemo } from "react";
@@ -41,10 +42,18 @@ const TYPE_LABELS: Record<string, string> = {
 };
 
 function urgencyConfig(u: string) {
-  if (u === "critica") return { label: "CRÍTICA", bg: "#FDEAEA", text: "#D94F4F", dot: "#D94F4F", hex: "#D94F4F" };
-  if (u === "alta") return { label: "ALTA", bg: "#FFF0EA", text: "#C4622D", dot: "#C4622D", hex: "#C4622D" };
-  if (u === "media") return { label: "MEDIA", bg: "#FFF3E0", text: "#E8A020", dot: "#E8A020", hex: "#E8A020" };
-  return { label: "BAJA", bg: "#F0F0F0", text: "#8C8C8C", dot: "#8C8C8C", hex: "#8C8C8C" };
+  if (u === "critica") return { label: "CRÍTICA", bg: "#FDEAEA", text: "#D94F4F", hex: "#D94F4F" };
+  if (u === "alta")   return { label: "ALTA",    bg: "#FFF0EA", text: "#C4622D", hex: "#C4622D" };
+  if (u === "media")  return { label: "MEDIA",   bg: "#FFF3E0", text: "#E8A020", hex: "#E8A020" };
+  return                     { label: "BAJA",    bg: "#F0F0F0", text: "#8C8C8C", hex: "#8C8C8C" };
+}
+
+function statusConfig(s: string) {
+  if (s === "pendiente")   return { label: "Pendiente",   bg: "#FFF3E0", text: "#E8A020" };
+  if (s === "en_revision") return { label: "En revisión", bg: "#E3F2FD", text: "#1976D2" };
+  if (s === "atendido")    return { label: "Atendido",    bg: "#E8F5E9", text: "#388E3C" };
+  if (s === "descartado")  return { label: "Descartado",  bg: "#F0F0F0", text: "#8C8C8C" };
+  return                          { label: s,             bg: "#F0F0F0", text: "#8C8C8C" };
 }
 
 function timeAgo(iso: string | undefined | null) {
@@ -67,59 +76,62 @@ function formatDate(iso: string | undefined | null) {
   return d.toLocaleDateString("es-BO", { day: "2-digit", month: "short", hour: "2-digit", minute: "2-digit" });
 }
 
-function openMaps(lat: number | string, lon: number | string, label: string) {
-  const url = `https://www.google.com/maps/search/?api=1&query=${lat},${lon}`;
-  Linking.openURL(url);
+function openMaps(lat: number | string, lon: number | string) {
+  Linking.openURL(`https://www.google.com/maps/search/?api=1&query=${lat},${lon}`);
 }
 
-// Renders a Leaflet map embedded as an iframe (web) or placeholder (native without WebView)
+// ── Leaflet map (iframe on web, placeholder on native) ────────────────────────
 function LeafletMap({ reports, alerts }: { reports: MapReport[]; alerts: Alert[] }) {
-  const markers = reports.map((r) => {
-    const uc = urgencyConfig(r.urgency_level);
-    return { lat: Number(r.latitude), lon: Number(r.longitude), color: uc.hex, popup: `${TYPE_LABELS[r.incident_type] ?? r.incident_type}<br/><b>${uc.label}</b>` };
-  });
-  const alertMarkers = alerts.map((a) => ({
-    lat: null as number | null,
-    lon: null as number | null,
-    label: a.title,
-    level: a.level,
-  }));
-
   const html = `<!DOCTYPE html>
 <html><head>
 <meta charset="utf-8"/>
 <meta name="viewport" content="width=device-width,initial-scale=1"/>
 <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css"/>
 <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
-<style>html,body,#map{margin:0;padding:0;height:100%;width:100%}body{background:#2C1A0E}</style>
+<style>
+html,body,#map{margin:0;padding:0;height:100%;width:100%;font-family:sans-serif}
+.popup-photo{width:100%;max-height:120px;object-fit:cover;border-radius:6px;margin-top:6px}
+.popup-title{font-weight:700;font-size:13px;margin:0 0 2px}
+.popup-urg{display:inline-block;font-size:10px;font-weight:700;padding:2px 7px;border-radius:10px;margin-bottom:4px}
+.popup-status{font-size:11px;color:#555;margin:0}
+.popup-meta{font-size:11px;color:#888;margin-top:4px}
+</style>
 </head><body>
 <div id="map"></div>
 <script>
-var map = L.map('map',{zoomControl:true}).setView([-16.5,-68.15],13);
-L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png',{maxZoom:19,attribution:'&copy; OSM'}).addTo(map);
-${markers.map((m, i) => `
-var ic${i}=L.divIcon({className:'',html:'<div style="background:${m.color};width:14px;height:14px;border-radius:50%;border:2px solid white;box-shadow:0 2px 6px rgba(0,0,0,0.4)"></div>',iconSize:[14,14],iconAnchor:[7,7]});
-L.marker([${m.lat},${m.lon}],{icon:ic${i}}).addTo(map).bindPopup('${m.popup.replace(/'/g, "\\'")}');
-`).join("")}
+var map=L.map('map',{zoomControl:true}).setView([-16.5,-68.15],13);
+L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png',{maxZoom:19,attribution:'© OSM'}).addTo(map);
+${reports.map((r, i) => {
+  const uc = urgencyConfig(r.urgency_level);
+  const sc = statusConfig(r.status);
+  const label = TYPE_LABELS[r.incident_type] ?? r.incident_type;
+  const photoTag = r.photo_url
+    ? `<img class='popup-photo' src='${r.photo_url}' alt='foto'/>`
+    : "";
+  const popup = `
+<p class='popup-title'>${label}</p>
+<span class='popup-urg' style='background:${uc.bg};color:${uc.text}'>${uc.label}</span>
+&nbsp;<span class='popup-urg' style='background:${sc.bg};color:${sc.text}'>${sc.label}</span>
+<p class='popup-meta'>${r.location_name ?? ""}</p>
+${photoTag}`.replace(/`/g, "\\`").replace(/\n/g, "");
+
+  return `
+var ic${i}=L.divIcon({className:'',html:'<div style="background:${uc.hex};width:16px;height:16px;border-radius:50%;border:2.5px solid #fff;box-shadow:0 2px 6px rgba(0,0,0,0.5)"></div>',iconSize:[16,16],iconAnchor:[8,8]});
+L.marker([${Number(r.latitude)},${Number(r.longitude)}],{icon:ic${i}}).addTo(map).bindPopup(\`${popup}\`,{maxWidth:200});`;
+}).join("")}
 </script>
 </body></html>`;
 
   if (Platform.OS === "web") {
-    // React Native Web supports native DOM elements via createElement
     return createElement("iframe", {
       srcDoc: html,
-      style: { width: "100%", height: 300, border: "none", borderRadius: 16 },
+      style: { width: "100%", height: 320, border: "none", borderRadius: 16 },
       sandbox: "allow-scripts allow-same-origin",
     } as any);
   }
 
-  // Native without WebView: show a "open in browser" placeholder
   return (
-    <TouchableOpacity
-      style={s.nativeMapPlaceholder}
-      onPress={() => openMaps(-16.5, -68.15, "La Paz")}
-      activeOpacity={0.85}
-    >
+    <TouchableOpacity style={s.nativeMapPlaceholder} onPress={() => openMaps(-16.5, -68.15)} activeOpacity={0.85}>
       <MaterialIcons name="map" size={40} color="rgba(255,255,255,0.5)" />
       <Text style={s.nativeMapText}>Ver en Google Maps</Text>
       <Text style={s.nativeMapSub}>{reports.length} reportes · La Paz, Bolivia</Text>
@@ -127,6 +139,7 @@ L.marker([${m.lat},${m.lon}],{icon:ic${i}}).addTo(map).bindPopup('${m.popup.repl
   );
 }
 
+// ── Main Screen ───────────────────────────────────────────────────────────────
 export function MapScreen() {
   const [reports, setReports] = useState<MapReport[]>([]);
   const [alerts, setAlerts] = useState<Alert[]>([]);
@@ -144,8 +157,8 @@ export function MapScreen() {
         apiRequest<Alert[]>("/api/alerts/open"),
       ]);
       if (rData.status === "fulfilled") setReports(Array.isArray(rData.value) ? rData.value : []);
+      else setError("No se pudieron cargar los reportes");
       if (aData.status === "fulfilled") setAlerts(Array.isArray(aData.value) ? aData.value : []);
-      if (rData.status === "rejected") setError("No se pudieron cargar los reportes");
     } finally {
       setLoading(false);
       setRefreshing(false);
@@ -156,11 +169,11 @@ export function MapScreen() {
   const onRefresh = () => { setRefreshing(true); load(); };
 
   const filtered = useMemo(() => reports.filter((r) => {
-    if (filter === "Todos") return true;
+    if (filter === "Todos")   return true;
     if (filter === "Activos") return r.status === "pendiente" || r.status === "en_revision";
     if (filter === "Crítica") return r.urgency_level === "critica";
-    if (filter === "Alta") return r.urgency_level === "alta";
-    if (filter === "Media") return r.urgency_level === "media";
+    if (filter === "Alta")    return r.urgency_level === "alta";
+    if (filter === "Media")   return r.urgency_level === "media";
     return true;
   }), [reports, filter]);
 
@@ -174,15 +187,15 @@ export function MapScreen() {
         <Text style={s.headerTitle}>Mapa de riesgo</Text>
         <View style={s.headerRight}>
           {critCount > 0 && (
-            <View style={[s.badge, { backgroundColor: "#FDEAEA" }]}>
+            <View style={[s.hdBadge, { backgroundColor: "#FDEAEA" }]}>
               <View style={[s.dot, { backgroundColor: "#D94F4F" }]} />
-              <Text style={[s.badgeTxt, { color: "#D94F4F" }]}>{critCount}</Text>
+              <Text style={[s.hdBadgeTxt, { color: "#D94F4F" }]}>{critCount}</Text>
             </View>
           )}
           {warnCount > 0 && (
-            <View style={[s.badge, { backgroundColor: "#FFF3E0" }]}>
+            <View style={[s.hdBadge, { backgroundColor: "#FFF3E0" }]}>
               <View style={[s.dot, { backgroundColor: "#E8A020" }]} />
-              <Text style={[s.badgeTxt, { color: "#E8A020" }]}>{warnCount}</Text>
+              <Text style={[s.hdBadgeTxt, { color: "#E8A020" }]}>{warnCount}</Text>
             </View>
           )}
         </View>
@@ -194,11 +207,7 @@ export function MapScreen() {
           const icon = m === "lista" ? "list" : m === "tabla" ? "table-rows" : "map";
           const label = m === "lista" ? "Lista" : m === "tabla" ? "Tabla" : "Mapa";
           return (
-            <TouchableOpacity
-              key={m}
-              style={[s.toggleBtn, viewMode === m && s.toggleBtnActive]}
-              onPress={() => setViewMode(m)}
-            >
+            <TouchableOpacity key={m} style={[s.toggleBtn, viewMode === m && s.toggleBtnActive]} onPress={() => setViewMode(m)}>
               <MaterialIcons name={icon as any} size={16} color={viewMode === m ? "#fff" : TEXT_SECONDARY} />
               <Text style={[s.toggleTxt, viewMode === m && s.toggleTxtActive]}>{label}</Text>
             </TouchableOpacity>
@@ -207,24 +216,15 @@ export function MapScreen() {
       </View>
 
       {/* Filters */}
-      <ScrollView
-        horizontal
-        showsHorizontalScrollIndicator={false}
-        style={s.filtersScroll}
-        contentContainerStyle={s.filtersContent}
-      >
+      <ScrollView horizontal showsHorizontalScrollIndicator={false} style={s.filtersScroll} contentContainerStyle={s.filtersContent}>
         {FILTERS.map((f) => (
-          <TouchableOpacity
-            key={f}
-            style={[s.chip, filter === f && s.chipActive]}
-            onPress={() => setFilter(f)}
-          >
-            <Text style={[s.chipText, filter === f && s.chipTextActive]}>{f}</Text>
+          <TouchableOpacity key={f} style={[s.chip, filter === f && s.chipActive]} onPress={() => setFilter(f)}>
+            <Text style={[s.chipTxt, filter === f && s.chipTxtActive]}>{f}</Text>
           </TouchableOpacity>
         ))}
       </ScrollView>
 
-      {/* Alerts banner from IoT sensors */}
+      {/* IoT alerts banner */}
       {alerts.length > 0 && (
         <View style={s.alertsBanner}>
           <MaterialIcons name="sensors" size={16} color="#D94F4F" />
@@ -238,17 +238,13 @@ export function MapScreen() {
       {error && (
         <View style={s.errorBanner}>
           <MaterialIcons name="error-outline" size={16} color="#D94F4F" />
-          <Text style={s.errorText}>{error}</Text>
-          <TouchableOpacity onPress={load}>
-            <Text style={s.retryText}>Reintentar</Text>
-          </TouchableOpacity>
+          <Text style={s.errorTxt}>{error}</Text>
+          <TouchableOpacity onPress={load}><Text style={s.retryTxt}>Reintentar</Text></TouchableOpacity>
         </View>
       )}
 
       {loading ? (
-        <View style={s.center}>
-          <ActivityIndicator size="large" color={TERRACOTA} />
-        </View>
+        <View style={s.center}><ActivityIndicator size="large" color={TERRACOTA} /></View>
       ) : (
         <ScrollView
           style={s.list}
@@ -256,154 +252,139 @@ export function MapScreen() {
           refreshControl={<RefreshControl refreshing={refreshing} onRefresh={onRefresh} tintColor={TERRACOTA} />}
           showsVerticalScrollIndicator={false}
         >
-          {/* MAP VIEW */}
+          {/* ── MAPA ── */}
           {viewMode === "mapa" && (
             <>
               <LeafletMap reports={filtered} alerts={alerts} />
-              {/* Sensor alerts below map */}
-              {alerts.length > 0 && (
-                <View style={s.alertsSection}>
-                  <Text style={s.alertsSectionTitle}>Alertas del sensor IoT</Text>
-                  {alerts.map((a) => (
-                    <View key={a.id} style={[s.alertCard, { borderLeftColor: a.level === "danger" ? "#D94F4F" : "#E8A020" }]}>
-                      <MaterialIcons
-                        name={a.level === "danger" ? "warning" : "info-outline"}
-                        size={18}
-                        color={a.level === "danger" ? "#D94F4F" : "#E8A020"}
-                      />
-                      <View style={{ flex: 1 }}>
-                        <Text style={s.alertCardTitle}>{a.title}</Text>
-                        <Text style={s.alertCardMsg} numberOfLines={2}>{a.message}</Text>
-                        <Text style={s.alertCardMeta}>{a.device_name} · {formatDate(a.created_at)}</Text>
-                      </View>
-                    </View>
-                  ))}
-                </View>
-              )}
+              <AlertsList alerts={alerts} />
             </>
           )}
 
-          {/* TABLA VIEW */}
+          {/* ── TABLA ── */}
           {viewMode === "tabla" && (
-            <View style={s.tableWrap}>
-              {/* Header row */}
-              <View style={[s.tableRow, s.tableHead]}>
-                <Text style={[s.tableCell, s.tableCellHead, { flex: 2 }]}>Tipo</Text>
-                <Text style={[s.tableCell, s.tableCellHead, { flex: 1.2 }]}>Urgencia</Text>
-                <Text style={[s.tableCell, s.tableCellHead, { flex: 1.5 }]}>Fecha</Text>
-                <Text style={[s.tableCell, s.tableCellHead, { flex: 1 }]}>Estado</Text>
-              </View>
-              {filtered.length === 0 ? (
-                <View style={s.empty}>
-                  <MaterialIcons name="table-rows" size={36} color={TEXT_SECONDARY} />
-                  <Text style={s.emptyText}>Sin reportes con este filtro</Text>
+            <>
+              <View style={s.tableWrap}>
+                <View style={[s.tableRow, s.tableHead]}>
+                  <Text style={[s.tCell, s.tHead, { flex: 1.8 }]}>Tipo</Text>
+                  <Text style={[s.tCell, s.tHead, { flex: 1.1 }]}>Urgencia</Text>
+                  <Text style={[s.tCell, s.tHead, { flex: 1.1 }]}>Estado</Text>
+                  <Text style={[s.tCell, s.tHead, { flex: 1.4 }]}>Fecha</Text>
+                  <Text style={[s.tCell, s.tHead, { flex: 0.5 }]}>Foto</Text>
                 </View>
-              ) : (
-                filtered.map((r, i) => {
+                {filtered.length === 0 ? (
+                  <View style={s.empty}>
+                    <MaterialIcons name="table-rows" size={36} color={TEXT_SECONDARY} />
+                    <Text style={s.emptyTxt}>Sin reportes con este filtro</Text>
+                  </View>
+                ) : filtered.map((r, i) => {
                   const uc = urgencyConfig(r.urgency_level);
+                  const sc = statusConfig(r.status);
                   return (
-                    <View key={r.id} style={[s.tableRow, i % 2 === 1 && { backgroundColor: CREAM_DEEP }]}>
-                      <Text style={[s.tableCell, { flex: 2 }]} numberOfLines={2}>
+                    <TouchableOpacity
+                      key={r.id}
+                      style={[s.tableRow, i % 2 === 1 && { backgroundColor: CREAM_DEEP }]}
+                      onPress={() => openMaps(r.latitude, r.longitude)}
+                      activeOpacity={0.7}
+                    >
+                      <Text style={[s.tCell, { flex: 1.8 }]} numberOfLines={2}>
                         {TYPE_LABELS[r.incident_type] ?? r.incident_type}
                       </Text>
-                      <View style={[s.tableCell, { flex: 1.2 }]}>
-                        <View style={[s.urgBadge, { backgroundColor: uc.bg }]}>
-                          <Text style={[s.urgBadgeTxt, { color: uc.text }]}>{uc.label}</Text>
+                      <View style={[s.tCell, { flex: 1.1 }]}>
+                        <View style={[s.miniBadge, { backgroundColor: uc.bg }]}>
+                          <Text style={[s.miniBadgeTxt, { color: uc.text }]}>{uc.label}</Text>
                         </View>
                       </View>
-                      <Text style={[s.tableCell, s.tableCellMono, { flex: 1.5 }]} numberOfLines={2}>
+                      <View style={[s.tCell, { flex: 1.1 }]}>
+                        <View style={[s.miniBadge, { backgroundColor: sc.bg }]}>
+                          <Text style={[s.miniBadgeTxt, { color: sc.text }]}>{sc.label}</Text>
+                        </View>
+                      </View>
+                      <Text style={[s.tCell, s.tMono, { flex: 1.4 }]} numberOfLines={2}>
                         {formatDate(r.reported_at)}
                       </Text>
-                      <Text style={[s.tableCell, { flex: 1, textTransform: "capitalize", fontSize: 11 }]} numberOfLines={1}>
-                        {r.status.replace("_", " ")}
-                      </Text>
-                    </View>
+                      <View style={[s.tCell, { flex: 0.5, alignItems: "center" }]}>
+                        {r.photo_url ? (
+                          <Image source={{ uri: r.photo_url }} style={s.tableThumb} />
+                        ) : (
+                          <MaterialIcons name="hide-image" size={16} color={TEXT_SECONDARY} />
+                        )}
+                      </View>
+                    </TouchableOpacity>
                   );
-                })
-              )}
-            </View>
+                })}
+              </View>
+              <AlertsList alerts={alerts} />
+            </>
           )}
 
-          {/* LISTA VIEW */}
+          {/* ── LISTA ── */}
           {viewMode === "lista" && (
             <>
               {filtered.length === 0 ? (
                 <View style={s.empty}>
                   <MaterialIcons name="location-off" size={40} color={TEXT_SECONDARY} />
-                  <Text style={s.emptyText}>
+                  <Text style={s.emptyTxt}>
                     {reports.length === 0 ? "No hay reportes en esta zona." : "No hay reportes con este filtro."}
                   </Text>
                 </View>
-              ) : (
-                filtered.map((r) => {
-                  const uc = urgencyConfig(r.urgency_level);
-                  return (
-                    <View key={r.id} style={s.reportCard}>
-                      <View style={s.reportTop}>
-                        <View style={s.reportLeft}>
-                          <View style={[s.pinIcon, { backgroundColor: uc.bg }]}>
-                            <MaterialIcons name="location-pin" size={18} color={uc.text} />
-                          </View>
-                          <View style={{ flex: 1 }}>
-                            <Text style={s.reportType}>{TYPE_LABELS[r.incident_type] ?? r.incident_type}</Text>
-                            <Text style={s.reportMeta}>
-                              {r.user_name ? `por ${r.user_name} · ` : ""}{timeAgo(r.reported_at)}
-                            </Text>
-                          </View>
+              ) : filtered.map((r) => {
+                const uc = urgencyConfig(r.urgency_level);
+                const sc = statusConfig(r.status);
+                return (
+                  <View key={r.id} style={s.card}>
+                    {/* Photo banner */}
+                    {r.photo_url && (
+                      <Image source={{ uri: r.photo_url }} style={s.cardPhoto} resizeMode="cover" />
+                    )}
+
+                    <View style={s.cardBody}>
+                      {/* Top row */}
+                      <View style={s.cardTop}>
+                        <View style={[s.pinIcon, { backgroundColor: uc.bg }]}>
+                          <MaterialIcons name="location-pin" size={18} color={uc.text} />
                         </View>
-                        <View style={[s.urgBadge, { backgroundColor: uc.bg }]}>
-                          <Text style={[s.urgBadgeTxt, { color: uc.text }]}>{uc.label}</Text>
+                        <View style={{ flex: 1 }}>
+                          <Text style={s.cardType}>{TYPE_LABELS[r.incident_type] ?? r.incident_type}</Text>
+                          <Text style={s.cardMeta}>
+                            {r.user_name ? `${r.user_name} · ` : ""}{timeAgo(r.reported_at)}
+                          </Text>
+                        </View>
+                        {/* Urgency + Status badges */}
+                        <View style={s.badgeCol}>
+                          <View style={[s.miniBadge, { backgroundColor: uc.bg }]}>
+                            <Text style={[s.miniBadgeTxt, { color: uc.text }]}>{uc.label}</Text>
+                          </View>
+                          <View style={[s.miniBadge, { backgroundColor: sc.bg, marginTop: 4 }]}>
+                            <Text style={[s.miniBadgeTxt, { color: sc.text }]}>{sc.label}</Text>
+                          </View>
                         </View>
                       </View>
 
                       {r.description ? (
-                        <Text style={s.reportDesc} numberOfLines={2}>{r.description}</Text>
+                        <Text style={s.cardDesc} numberOfLines={2}>{r.description}</Text>
                       ) : null}
 
                       {r.location_name ? (
                         <View style={s.addrRow}>
                           <MaterialIcons name="place" size={13} color={TEXT_SECONDARY} />
-                          <Text style={s.addrText} numberOfLines={1}>{r.location_name}</Text>
+                          <Text style={s.addrTxt} numberOfLines={1}>{r.location_name}</Text>
                         </View>
                       ) : null}
 
-                      <View style={s.reportFooter}>
+                      <View style={s.cardFooter}>
                         <Text style={s.coordsTxt}>
                           {Number(r.latitude).toFixed(4)}, {Number(r.longitude).toFixed(4)}
                         </Text>
-                        <TouchableOpacity
-                          style={s.mapsBtn}
-                          onPress={() => openMaps(r.latitude, r.longitude, TYPE_LABELS[r.incident_type])}
-                        >
+                        <TouchableOpacity style={s.mapsBtn} onPress={() => openMaps(r.latitude, r.longitude)}>
                           <MaterialIcons name="open-in-new" size={13} color={TERRACOTA} />
                           <Text style={s.mapsBtnTxt}>Abrir mapa</Text>
                         </TouchableOpacity>
                       </View>
                     </View>
-                  );
-                })
-              )}
-
-              {/* Sensor alerts at bottom of list */}
-              {alerts.length > 0 && (
-                <View style={s.alertsSection}>
-                  <Text style={s.alertsSectionTitle}>Alertas del sensor IoT</Text>
-                  {alerts.map((a) => (
-                    <View key={a.id} style={[s.alertCard, { borderLeftColor: a.level === "danger" ? "#D94F4F" : "#E8A020" }]}>
-                      <MaterialIcons
-                        name={a.level === "danger" ? "warning" : "info-outline"}
-                        size={18}
-                        color={a.level === "danger" ? "#D94F4F" : "#E8A020"}
-                      />
-                      <View style={{ flex: 1 }}>
-                        <Text style={s.alertCardTitle}>{a.title}</Text>
-                        <Text style={s.alertCardMsg} numberOfLines={2}>{a.message}</Text>
-                        <Text style={s.alertCardMeta}>{a.device_name} · {formatDate(a.created_at)}</Text>
-                      </View>
-                    </View>
-                  ))}
-                </View>
-              )}
+                  </View>
+                );
+              })}
+              <AlertsList alerts={alerts} />
             </>
           )}
 
@@ -414,27 +395,42 @@ export function MapScreen() {
   );
 }
 
+// ── Reusable alerts list ──────────────────────────────────────────────────────
+function AlertsList({ alerts }: { alerts: Alert[] }) {
+  if (alerts.length === 0) return null;
+  return (
+    <View style={s.alertsSection}>
+      <Text style={s.alertsSectionTitle}>Alertas del sensor IoT</Text>
+      {alerts.map((a) => {
+        const isDanger = a.level === "danger";
+        return (
+          <View key={a.id} style={[s.alertCard, { borderLeftColor: isDanger ? "#D94F4F" : "#E8A020" }]}>
+            <MaterialIcons name={isDanger ? "warning" : "info-outline"} size={18} color={isDanger ? "#D94F4F" : "#E8A020"} />
+            <View style={{ flex: 1 }}>
+              <Text style={s.alertCardTitle}>{a.title}</Text>
+              <Text style={s.alertCardMsg} numberOfLines={2}>{a.message}</Text>
+              <Text style={s.alertCardMeta}>{a.device_name} · {formatDate(a.created_at)}</Text>
+            </View>
+          </View>
+        );
+      })}
+    </View>
+  );
+}
+
+// ── Styles ────────────────────────────────────────────────────────────────────
 const s = StyleSheet.create({
   safe: { flex: 1, backgroundColor: CREAM },
 
-  header: {
-    flexDirection: "row", alignItems: "center", justifyContent: "space-between",
-    paddingHorizontal: 20, paddingTop: 16, paddingBottom: 10,
-  },
+  header: { flexDirection: "row", alignItems: "center", justifyContent: "space-between", paddingHorizontal: 20, paddingTop: 16, paddingBottom: 10 },
   headerTitle: { fontSize: 22, color: TEXT_PRIMARY, fontFamily: "DMSans_700Bold" },
   headerRight: { flexDirection: "row", gap: 8 },
-  badge: { flexDirection: "row", alignItems: "center", gap: 4, paddingHorizontal: 10, paddingVertical: 4, borderRadius: 20 },
-  badgeTxt: { fontSize: 12, fontFamily: "DMSans_700Bold" },
+  hdBadge: { flexDirection: "row", alignItems: "center", gap: 4, paddingHorizontal: 10, paddingVertical: 4, borderRadius: 20 },
+  hdBadgeTxt: { fontSize: 12, fontFamily: "DMSans_700Bold" },
   dot: { width: 6, height: 6, borderRadius: 3 },
 
-  toggleRow: {
-    flexDirection: "row", gap: 8, paddingHorizontal: 16, paddingBottom: 10,
-  },
-  toggleBtn: {
-    flexDirection: "row", alignItems: "center", gap: 6,
-    paddingHorizontal: 14, paddingVertical: 8, borderRadius: 20,
-    backgroundColor: CREAM_DEEP, borderWidth: 1, borderColor: BORDER,
-  },
+  toggleRow: { flexDirection: "row", gap: 8, paddingHorizontal: 16, paddingBottom: 10 },
+  toggleBtn: { flexDirection: "row", alignItems: "center", gap: 6, paddingHorizontal: 14, paddingVertical: 8, borderRadius: 20, backgroundColor: CREAM_DEEP, borderWidth: 1, borderColor: BORDER },
   toggleBtnActive: { backgroundColor: DARK_PANEL, borderColor: DARK_PANEL },
   toggleTxt: { fontSize: 13, color: TEXT_SECONDARY, fontFamily: "DMSans_500Medium" },
   toggleTxtActive: { color: "#fff" },
@@ -443,77 +439,60 @@ const s = StyleSheet.create({
   filtersContent: { paddingHorizontal: 16, paddingVertical: 4, gap: 8 },
   chip: { paddingHorizontal: 14, paddingVertical: 7, borderRadius: 20, backgroundColor: CREAM_DEEP, borderWidth: 1, borderColor: BORDER },
   chipActive: { backgroundColor: TERRACOTA, borderColor: TERRACOTA },
-  chipText: { fontSize: 13, color: TEXT_SECONDARY, fontFamily: "DMSans_500Medium" },
-  chipTextActive: { color: "#fff" },
+  chipTxt: { fontSize: 13, color: TEXT_SECONDARY, fontFamily: "DMSans_500Medium" },
+  chipTxtActive: { color: "#fff" },
 
-  alertsBanner: {
-    flexDirection: "row", alignItems: "center", gap: 8,
-    marginHorizontal: 16, marginTop: 8, padding: 10,
-    backgroundColor: "#FDEAEA", borderRadius: 10,
-  },
+  alertsBanner: { flexDirection: "row", alignItems: "center", gap: 8, marginHorizontal: 16, marginVertical: 6, padding: 10, backgroundColor: "#FDEAEA", borderRadius: 10 },
   alertsBannerTxt: { flex: 1, fontSize: 13, color: "#D94F4F", fontFamily: "DMSans_500Medium" },
 
-  errorBanner: {
-    flexDirection: "row", alignItems: "center", gap: 8,
-    marginHorizontal: 16, marginBottom: 8, padding: 12,
-    backgroundColor: "#FDEAEA", borderRadius: 10,
-  },
-  errorText: { flex: 1, fontSize: 13, color: "#D94F4F", fontFamily: "DMSans_400Regular" },
-  retryText: { fontSize: 13, color: TERRACOTA, fontFamily: "DMSans_700Bold" },
+  errorBanner: { flexDirection: "row", alignItems: "center", gap: 8, marginHorizontal: 16, marginBottom: 8, padding: 12, backgroundColor: "#FDEAEA", borderRadius: 10 },
+  errorTxt: { flex: 1, fontSize: 13, color: "#D94F4F", fontFamily: "DMSans_400Regular" },
+  retryTxt: { fontSize: 13, color: TERRACOTA, fontFamily: "DMSans_700Bold" },
 
   center: { flex: 1, justifyContent: "center", alignItems: "center" },
   list: { flex: 1 },
   listContent: { paddingHorizontal: 16, paddingTop: 10 },
-
   empty: { alignItems: "center", paddingVertical: 48, gap: 12 },
-  emptyText: { fontSize: 14, color: TEXT_SECONDARY, fontFamily: "DMSans_400Regular", textAlign: "center" },
+  emptyTxt: { fontSize: 14, color: TEXT_SECONDARY, fontFamily: "DMSans_400Regular", textAlign: "center" },
 
   // List cards
-  reportCard: {
-    backgroundColor: "#fff", borderRadius: 14, padding: 16, marginBottom: 10,
-    borderWidth: 1, borderColor: BORDER,
-  },
-  reportTop: { flexDirection: "row", justifyContent: "space-between", alignItems: "flex-start", marginBottom: 8 },
-  reportLeft: { flexDirection: "row", alignItems: "flex-start", gap: 10, flex: 1, marginRight: 10 },
-  pinIcon: { width: 34, height: 34, borderRadius: 10, justifyContent: "center", alignItems: "center" },
-  reportType: { fontSize: 14, color: TEXT_PRIMARY, fontFamily: "DMSans_700Bold" },
-  reportMeta: { fontSize: 12, color: TEXT_SECONDARY, fontFamily: "DMSans_400Regular", marginTop: 2 },
-  reportDesc: { fontSize: 13, color: TEXT_SECONDARY, fontFamily: "DMSans_400Regular", marginBottom: 8, lineHeight: 19 },
+  card: { backgroundColor: "#fff", borderRadius: 14, marginBottom: 10, borderWidth: 1, borderColor: BORDER, overflow: "hidden" },
+  cardPhoto: { width: "100%", height: 160 },
+  cardBody: { padding: 14 },
+  cardTop: { flexDirection: "row", alignItems: "flex-start", gap: 10, marginBottom: 8 },
+  pinIcon: { width: 34, height: 34, borderRadius: 10, justifyContent: "center", alignItems: "center", flexShrink: 0 },
+  cardType: { fontSize: 14, color: TEXT_PRIMARY, fontFamily: "DMSans_700Bold" },
+  cardMeta: { fontSize: 12, color: TEXT_SECONDARY, fontFamily: "DMSans_400Regular", marginTop: 2 },
+  badgeCol: { alignItems: "flex-end" },
+  cardDesc: { fontSize: 13, color: TEXT_SECONDARY, fontFamily: "DMSans_400Regular", marginBottom: 8, lineHeight: 19 },
   addrRow: { flexDirection: "row", alignItems: "center", gap: 4, marginBottom: 8 },
-  addrText: { fontSize: 12, color: TEXT_SECONDARY, fontFamily: "DMSans_400Regular", flex: 1 },
-  reportFooter: { flexDirection: "row", justifyContent: "space-between", alignItems: "center", paddingTop: 8, borderTopWidth: 1, borderTopColor: CREAM_DEEP },
+  addrTxt: { fontSize: 12, color: TEXT_SECONDARY, fontFamily: "DMSans_400Regular", flex: 1 },
+  cardFooter: { flexDirection: "row", justifyContent: "space-between", alignItems: "center", paddingTop: 8, borderTopWidth: 1, borderTopColor: CREAM_DEEP },
   coordsTxt: { fontSize: 11, color: TEXT_SECONDARY, fontFamily: "DMMono_400Regular" },
   mapsBtn: { flexDirection: "row", alignItems: "center", gap: 4 },
   mapsBtnTxt: { fontSize: 12, color: TERRACOTA, fontFamily: "DMSans_500Medium" },
 
-  urgBadge: { paddingHorizontal: 8, paddingVertical: 3, borderRadius: 20 },
-  urgBadgeTxt: { fontSize: 10, fontFamily: "DMSans_700Bold", letterSpacing: 0.3 },
+  miniBadge: { paddingHorizontal: 7, paddingVertical: 2, borderRadius: 20 },
+  miniBadgeTxt: { fontSize: 10, fontFamily: "DMSans_700Bold", letterSpacing: 0.2 },
 
   // Table
-  tableWrap: { borderRadius: 12, overflow: "hidden", borderWidth: 1, borderColor: BORDER, backgroundColor: "#fff" },
+  tableWrap: { borderRadius: 12, overflow: "hidden", borderWidth: 1, borderColor: BORDER, backgroundColor: "#fff", marginBottom: 16 },
   tableHead: { backgroundColor: DARK_PANEL },
-  tableRow: { flexDirection: "row", alignItems: "center", paddingVertical: 10, paddingHorizontal: 10, borderBottomWidth: 1, borderBottomColor: BORDER },
-  tableCell: { fontSize: 12, color: TEXT_PRIMARY, fontFamily: "DMSans_400Regular", paddingHorizontal: 4 },
-  tableCellHead: { color: "#C4AD8C", fontFamily: "DMSans_700Bold", fontSize: 11 },
-  tableCellMono: { fontFamily: "DMMono_400Regular", fontSize: 11 },
+  tableRow: { flexDirection: "row", alignItems: "center", paddingVertical: 10, paddingHorizontal: 8, borderBottomWidth: 1, borderBottomColor: BORDER },
+  tCell: { fontSize: 12, color: TEXT_PRIMARY, fontFamily: "DMSans_400Regular", paddingHorizontal: 3 },
+  tHead: { color: "#C4AD8C", fontFamily: "DMSans_700Bold", fontSize: 10, textTransform: "uppercase" },
+  tMono: { fontFamily: "DMMono_400Regular", fontSize: 11 },
+  tableThumb: { width: 32, height: 32, borderRadius: 6 },
 
   // Map
-  nativeMapPlaceholder: {
-    height: 220, backgroundColor: DARK_PANEL, borderRadius: 16,
-    justifyContent: "center", alignItems: "center", gap: 8,
-  },
+  nativeMapPlaceholder: { height: 220, backgroundColor: DARK_PANEL, borderRadius: 16, justifyContent: "center", alignItems: "center", gap: 8, marginBottom: 16 },
   nativeMapText: { fontSize: 16, color: "#fff", fontFamily: "DMSans_700Bold" },
   nativeMapSub: { fontSize: 13, color: "rgba(255,255,255,0.5)", fontFamily: "DMSans_400Regular" },
 
-  // Alerts section
+  // Alerts
   alertsSection: { marginTop: 20 },
   alertsSectionTitle: { fontSize: 16, color: TEXT_PRIMARY, fontFamily: "DMSans_700Bold", marginBottom: 10 },
-  alertCard: {
-    flexDirection: "row", gap: 10, alignItems: "flex-start",
-    backgroundColor: "#fff", borderRadius: 12, padding: 14,
-    borderWidth: 1, borderColor: BORDER, borderLeftWidth: 4,
-    marginBottom: 8,
-  },
+  alertCard: { flexDirection: "row", gap: 10, alignItems: "flex-start", backgroundColor: "#fff", borderRadius: 12, padding: 14, borderWidth: 1, borderColor: BORDER, borderLeftWidth: 4, marginBottom: 8 },
   alertCardTitle: { fontSize: 13, color: TEXT_PRIMARY, fontFamily: "DMSans_700Bold", marginBottom: 2 },
   alertCardMsg: { fontSize: 12, color: TEXT_SECONDARY, fontFamily: "DMSans_400Regular", lineHeight: 18 },
   alertCardMeta: { fontSize: 11, color: TEXT_SECONDARY, fontFamily: "DMSans_400Regular", marginTop: 4 },
