@@ -152,7 +152,8 @@ export interface Report {
   urgency_level: ReportUrgency;
   status: ReportStatus;
   photo_url: string | null;
-  created_at: string;
+  reported_at: string;
+  updated_at?: string;
 }
 
 export interface MapReport {
@@ -166,7 +167,8 @@ export interface MapReport {
   urgency_level: ReportUrgency;
   status: ReportStatus;
   photo_url: string | null;
-  created_at: string;
+  reported_at: string;
+  updated_at?: string;
   distance_km?: number;
 }
 

@@ -32,8 +32,10 @@ function riskConfig(level: RiskLevel | string) {
   return { label: "BAJA", bg: "#F0F0F0", text: "#8C8C8C" };
 }
 
-function formatDate(iso: string) {
+function formatDate(iso: string | undefined | null) {
+  if (!iso) return "—";
   const d = new Date(iso);
+  if (isNaN(d.getTime())) return "—";
   return d.toLocaleDateString("es-BO", { day: "2-digit", month: "short", hour: "2-digit", minute: "2-digit" });
 }
 
@@ -193,7 +195,7 @@ export function HomeScreen() {
                   <View style={s.reportRow}>
                     <View style={s.reportInfo}>
                       <Text style={s.reportType}>{REPORT_TYPE_LABELS[r.incident_type] ?? r.incident_type}</Text>
-                      <Text style={s.reportDate}>{formatDate(r.created_at)}</Text>
+                      <Text style={s.reportDate}>{formatDate(r.reported_at)}</Text>
                       {r.location_name ? (
                         <Text style={s.reportAddress} numberOfLines={1}>{r.location_name}</Text>
                       ) : null}

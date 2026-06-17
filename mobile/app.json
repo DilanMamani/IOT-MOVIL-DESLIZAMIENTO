@@ -31,6 +31,13 @@
         {
           "locationAlwaysAndWhenInUsePermission": "TerraGuard necesita tu ubicación para adjuntarla a tus reportes de incidentes."
         }
+      ],
+      [
+        "expo-image-picker",
+        {
+          "photosPermission": "TerraGuard necesita acceso a tus fotos para adjuntarlas a los reportes.",
+          "cameraPermission": "TerraGuard necesita la cámara para fotografiar incidentes."
+        }
       ]
     ]
   }

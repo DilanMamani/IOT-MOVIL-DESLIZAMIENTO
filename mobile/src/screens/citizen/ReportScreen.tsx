@@ -9,12 +9,15 @@ import {
   ActivityIndicator,
   Modal,
   FlatList,
+  Image,
+  Platform,
 } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { MaterialIcons } from "@expo/vector-icons";
 import { useState, useEffect } from "react";
 import { useNavigation } from "@react-navigation/native";
 import * as Location from "expo-location";
+import * as ImagePicker from "expo-image-picker";
 import { createReport } from "../../api/reports";
 import type { ReportType, ReportUrgency } from "../../types";
 
@@ -43,9 +46,14 @@ const URGENCY_OPTIONS: { value: ReportUrgency; label: string; bg: string; text: 
   { value: "critica", label: "Crítica", bg: "#FDEAEA", text: "#D94F4F" },
 ];
 
-// La Paz fallback coords if GPS unavailable
 const FALLBACK_LAT = -16.5;
 const FALLBACK_LON = -68.15;
+
+interface PhotoAsset {
+  uri: string;
+  type: string;
+  name: string;
+}
 
 export function ReportScreen() {
   const navigation = useNavigation<any>();
@@ -58,27 +66,23 @@ export function ReportScreen() {
   const [lon, setLon] = useState<number>(FALLBACK_LON);
   const [locLoading, setLocLoading] = useState(false);
   const [locOk, setLocOk] = useState(false);
+  const [photo, setPhoto] = useState<PhotoAsset | null>(null);
   const [loading, setLoading] = useState(false);
   const [showTypePicker, setShowTypePicker] = useState(false);
+  const [showPhotoMenu, setShowPhotoMenu] = useState(false);
 
   const selectedType = INCIDENT_TYPES.find((t) => t.value === incidentType);
 
-  // Request location as soon as screen mounts
   useEffect(() => {
     (async () => {
       setLocLoading(true);
       try {
         const { status } = await Location.requestForegroundPermissionsAsync();
-        if (status !== "granted") {
-          setLocLoading(false);
-          return;
-        }
+        if (status !== "granted") return;
         const pos = await Location.getCurrentPositionAsync({ accuracy: Location.Accuracy.High });
         setLat(pos.coords.latitude);
         setLon(pos.coords.longitude);
         setLocOk(true);
-
-        // Reverse geocode for address suggestion
         const [addr] = await Location.reverseGeocodeAsync({
           latitude: pos.coords.latitude,
           longitude: pos.coords.longitude,
@@ -88,12 +92,56 @@ export function ReportScreen() {
           setLocationName(parts.join(", "));
         }
       } catch {
-        // GPS error — keep fallback coords
+        // keep fallback
       } finally {
         setLocLoading(false);
       }
     })();
   }, []);
+
+  const pickFromGallery = async () => {
+    setShowPhotoMenu(false);
+    const { status } = await ImagePicker.requestMediaLibraryPermissionsAsync();
+    if (status !== "granted") {
+      Alert.alert("Permiso requerido", "Se necesita acceso a la galería.");
+      return;
+    }
+    const result = await ImagePicker.launchImageLibraryAsync({
+      mediaTypes: ImagePicker.MediaTypeOptions.Images,
+      allowsEditing: true,
+      quality: 0.7,
+    });
+    if (!result.canceled && result.assets[0]) {
+      const asset = result.assets[0];
+      const name = asset.fileName ?? `photo_${Date.now()}.jpg`;
+      const type = asset.mimeType ?? "image/jpeg";
+      setPhoto({ uri: asset.uri, type, name });
+    }
+  };
+
+  const takePhoto = async () => {
+    setShowPhotoMenu(false);
+    if (Platform.OS === "web") {
+      // On web, camera access via ImagePicker falls back to gallery
+      await pickFromGallery();
+      return;
+    }
+    const { status } = await ImagePicker.requestCameraPermissionsAsync();
+    if (status !== "granted") {
+      Alert.alert("Permiso requerido", "Se necesita acceso a la cámara.");
+      return;
+    }
+    const result = await ImagePicker.launchCameraAsync({
+      allowsEditing: true,
+      quality: 0.7,
+    });
+    if (!result.canceled && result.assets[0]) {
+      const asset = result.assets[0];
+      const name = asset.fileName ?? `photo_${Date.now()}.jpg`;
+      const type = asset.mimeType ?? "image/jpeg";
+      setPhoto({ uri: asset.uri, type, name });
+    }
+  };
 
   const handleSubmit = async () => {
     if (!incidentType) {
@@ -114,6 +162,7 @@ export function ReportScreen() {
         latitude: lat,
         longitude: lon,
         location_name: locationName.trim() || undefined,
+        photo: photo ?? undefined,
       });
       Alert.alert(
         "Reporte enviado",
@@ -129,7 +178,6 @@ export function ReportScreen() {
 
   return (
     <SafeAreaView style={s.safe}>
-      {/* Header */}
       <View style={s.header}>
         <TouchableOpacity onPress={() => navigation.goBack()} style={s.backBtn}>
           <MaterialIcons name="arrow-back" size={22} color={TEXT_PRIMARY} />
@@ -140,14 +188,27 @@ export function ReportScreen() {
 
       <ScrollView style={s.scroll} contentContainerStyle={s.content} showsVerticalScrollIndicator={false}>
 
-        {/* Photo Placeholder */}
-        <TouchableOpacity style={s.photoArea} activeOpacity={0.8}>
-          <MaterialIcons name="photo-camera" size={40} color={TEXT_SECONDARY} />
-          <Text style={s.photoTitle}>Fotografiar el incidente</Text>
-          <Text style={s.photoSub}>Toca para agregar una foto (opcional)</Text>
-        </TouchableOpacity>
+        {/* Photo Area */}
+        {photo ? (
+          <View style={s.photoPreviewWrap}>
+            <Image source={{ uri: photo.uri }} style={s.photoPreview} resizeMode="cover" />
+            <TouchableOpacity style={s.photoRemoveBtn} onPress={() => setPhoto(null)}>
+              <MaterialIcons name="close" size={18} color="#fff" />
+            </TouchableOpacity>
+            <TouchableOpacity style={s.photoChangeBtn} onPress={() => setShowPhotoMenu(true)}>
+              <MaterialIcons name="edit" size={14} color={TERRACOTA} />
+              <Text style={s.photoChangeTxt}>Cambiar</Text>
+            </TouchableOpacity>
+          </View>
+        ) : (
+          <TouchableOpacity style={s.photoArea} activeOpacity={0.8} onPress={() => setShowPhotoMenu(true)}>
+            <MaterialIcons name="photo-camera" size={40} color={TEXT_SECONDARY} />
+            <Text style={s.photoTitle}>Agregar foto del incidente</Text>
+            <Text style={s.photoSub}>Toca para tomar foto o elegir de galería</Text>
+          </TouchableOpacity>
+        )}
 
-        {/* Tipo de incidente */}
+        {/* Tipo */}
         <Text style={s.label}>Tipo de incidente *</Text>
         <TouchableOpacity style={s.selector} onPress={() => setShowTypePicker(true)} activeOpacity={0.8}>
           {selectedType ? (
@@ -174,7 +235,7 @@ export function ReportScreen() {
           onChangeText={setDescription}
         />
 
-        {/* Ubicación GPS */}
+        {/* GPS */}
         <Text style={s.label}>Ubicación GPS</Text>
         <View style={[s.locationCard, locOk && { borderColor: "#4CAF50" }]}>
           {locLoading ? (
@@ -186,18 +247,16 @@ export function ReportScreen() {
               color={locOk ? "#4CAF50" : TEXT_SECONDARY}
             />
           )}
-          <View style={{ flex: 1 }}>
-            <Text style={[s.coordsText, locOk && { color: "#4CAF50" }]}>
-              {locOk
+          <Text style={[s.coordsText, locOk && { color: "#4CAF50" }]}>
+            {locLoading
+              ? "Obteniendo ubicación..."
+              : locOk
                 ? `${lat.toFixed(5)}, ${lon.toFixed(5)}`
-                : locLoading
-                  ? "Obteniendo ubicación..."
-                  : "Ubicación aproximada (GPS no disponible)"}
-            </Text>
-          </View>
+                : "Ubicación aproximada (GPS no disponible)"}
+          </Text>
         </View>
 
-        {/* Dirección / referencia */}
+        {/* Dirección */}
         <Text style={[s.label, { marginTop: 12 }]}>Dirección o referencia</Text>
         <View style={s.locationCard}>
           <MaterialIcons name="location-pin" size={20} color={TERRACOTA} />
@@ -216,19 +275,11 @@ export function ReportScreen() {
           {URGENCY_OPTIONS.map((opt) => (
             <TouchableOpacity
               key={opt.value}
-              style={[
-                s.urgencyChip,
-                urgency === opt.value && { backgroundColor: opt.bg, borderColor: opt.text },
-              ]}
+              style={[s.urgencyChip, urgency === opt.value && { backgroundColor: opt.bg, borderColor: opt.text }]}
               onPress={() => setUrgency(opt.value)}
               activeOpacity={0.8}
             >
-              <Text
-                style={[
-                  s.urgencyLabel,
-                  { color: urgency === opt.value ? opt.text : TEXT_SECONDARY },
-                ]}
-              >
+              <Text style={[s.urgencyLabel, { color: urgency === opt.value ? opt.text : TEXT_SECONDARY }]}>
                 {opt.label}
               </Text>
             </TouchableOpacity>
@@ -255,7 +306,7 @@ export function ReportScreen() {
         <View style={{ height: 40 }} />
       </ScrollView>
 
-      {/* Type Picker Modal */}
+      {/* Type Picker */}
       <Modal visible={showTypePicker} transparent animationType="slide">
         <TouchableOpacity style={s.modalOverlay} onPress={() => setShowTypePicker(false)} activeOpacity={1}>
           <View style={s.modalSheet}>
@@ -266,7 +317,7 @@ export function ReportScreen() {
               keyExtractor={(i) => i.value}
               renderItem={({ item }) => (
                 <TouchableOpacity
-                  style={[s.modalItem, incidentType === item.value && s.modalItemActive]}
+                  style={s.modalItem}
                   onPress={() => { setIncidentType(item.value); setShowTypePicker(false); }}
                 >
                   <View style={[s.modalItemIcon, incidentType === item.value && { backgroundColor: TERRACOTA }]}>
@@ -279,6 +330,30 @@ export function ReportScreen() {
                 </TouchableOpacity>
               )}
             />
+          </View>
+        </TouchableOpacity>
+      </Modal>
+
+      {/* Photo Source Menu */}
+      <Modal visible={showPhotoMenu} transparent animationType="fade">
+        <TouchableOpacity style={s.modalOverlay} onPress={() => setShowPhotoMenu(false)} activeOpacity={1}>
+          <View style={[s.modalSheet, { paddingBottom: 24 }]}>
+            <View style={s.modalHandle} />
+            <Text style={s.modalTitle}>Agregar foto</Text>
+            <TouchableOpacity style={s.photoMenuBtn} onPress={takePhoto}>
+              <MaterialIcons name="photo-camera" size={24} color={TERRACOTA} />
+              <Text style={s.photoMenuTxt}>Tomar foto con la cámara</Text>
+            </TouchableOpacity>
+            <TouchableOpacity style={s.photoMenuBtn} onPress={pickFromGallery}>
+              <MaterialIcons name="photo-library" size={24} color={TERRACOTA} />
+              <Text style={s.photoMenuTxt}>Elegir de la galería</Text>
+            </TouchableOpacity>
+            {photo && (
+              <TouchableOpacity style={s.photoMenuBtn} onPress={() => { setPhoto(null); setShowPhotoMenu(false); }}>
+                <MaterialIcons name="delete-outline" size={24} color="#D94F4F" />
+                <Text style={[s.photoMenuTxt, { color: "#D94F4F" }]}>Eliminar foto</Text>
+              </TouchableOpacity>
+            )}
           </View>
         </TouchableOpacity>
       </Modal>
@@ -305,6 +380,22 @@ const s = StyleSheet.create({
   },
   photoTitle: { fontSize: 15, color: TEXT_PRIMARY, fontFamily: "DMSans_500Medium" },
   photoSub: { fontSize: 13, color: TEXT_SECONDARY, fontFamily: "DMSans_400Regular" },
+  photoPreviewWrap: {
+    borderRadius: 16, overflow: "hidden", marginBottom: 24,
+    height: 180, position: "relative",
+  },
+  photoPreview: { width: "100%", height: "100%" },
+  photoRemoveBtn: {
+    position: "absolute", top: 10, right: 10,
+    width: 32, height: 32, borderRadius: 16,
+    backgroundColor: "rgba(0,0,0,0.6)", justifyContent: "center", alignItems: "center",
+  },
+  photoChangeBtn: {
+    position: "absolute", bottom: 10, right: 10,
+    flexDirection: "row", alignItems: "center", gap: 4,
+    backgroundColor: "#fff", borderRadius: 20, paddingHorizontal: 10, paddingVertical: 5,
+  },
+  photoChangeTxt: { fontSize: 12, color: TERRACOTA, fontFamily: "DMSans_500Medium" },
 
   label: { fontSize: 13, color: TEXT_SECONDARY, fontFamily: "DMSans_500Medium", marginBottom: 8, marginTop: 4 },
 
@@ -327,14 +418,14 @@ const s = StyleSheet.create({
     backgroundColor: "#fff", borderWidth: 1, borderColor: BORDER,
     borderRadius: 10, paddingHorizontal: 14, paddingVertical: 12, marginBottom: 6,
   },
-  coordsText: { fontSize: 13, fontFamily: "DMMono_400Regular", color: TEXT_SECONDARY },
+  coordsText: { fontSize: 13, fontFamily: "DMMono_400Regular", color: TEXT_SECONDARY, flex: 1 },
   locationInput: { flex: 1, fontSize: 15, fontFamily: "DMSans_400Regular", color: TEXT_PRIMARY },
 
-  urgencyRow: { flexDirection: "row", gap: 10, marginBottom: 32 },
+  urgencyRow: { flexDirection: "row", gap: 8, marginBottom: 32, flexWrap: "wrap" },
   urgencyChip: {
-    flex: 1, paddingVertical: 12, borderRadius: 10,
+    paddingVertical: 10, paddingHorizontal: 14, borderRadius: 10,
     borderWidth: 1.5, borderColor: BORDER, alignItems: "center",
-    backgroundColor: "#fff",
+    backgroundColor: "#fff", minWidth: 70,
   },
   urgencyLabel: { fontSize: 13, fontFamily: "DMSans_700Bold" },
 
@@ -345,11 +436,22 @@ const s = StyleSheet.create({
   submitText: { fontSize: 16, color: "#fff", fontFamily: "DMSans_700Bold" },
 
   modalOverlay: { flex: 1, backgroundColor: "rgba(0,0,0,0.4)", justifyContent: "flex-end" },
-  modalSheet: { backgroundColor: "#fff", borderTopLeftRadius: 24, borderTopRightRadius: 24, paddingBottom: 32, paddingHorizontal: 20, paddingTop: 12 },
+  modalSheet: {
+    backgroundColor: "#fff", borderTopLeftRadius: 24, borderTopRightRadius: 24,
+    paddingBottom: 32, paddingHorizontal: 20, paddingTop: 12,
+  },
   modalHandle: { width: 40, height: 4, backgroundColor: BORDER, borderRadius: 2, alignSelf: "center", marginBottom: 20 },
   modalTitle: { fontSize: 17, color: TEXT_PRIMARY, fontFamily: "DMSans_700Bold", marginBottom: 16 },
-  modalItem: { flexDirection: "row", alignItems: "center", gap: 14, paddingVertical: 14, borderBottomWidth: 1, borderBottomColor: CREAM_DEEP },
-  modalItemActive: { backgroundColor: "transparent" },
+  modalItem: {
+    flexDirection: "row", alignItems: "center", gap: 14,
+    paddingVertical: 14, borderBottomWidth: 1, borderBottomColor: CREAM_DEEP,
+  },
   modalItemIcon: { width: 36, height: 36, borderRadius: 10, backgroundColor: CREAM_DEEP, justifyContent: "center", alignItems: "center" },
   modalItemText: { flex: 1, fontSize: 15, color: TEXT_PRIMARY, fontFamily: "DMSans_400Regular" },
+
+  photoMenuBtn: {
+    flexDirection: "row", alignItems: "center", gap: 14,
+    paddingVertical: 16, borderBottomWidth: 1, borderBottomColor: CREAM_DEEP,
+  },
+  photoMenuTxt: { fontSize: 16, color: TEXT_PRIMARY, fontFamily: "DMSans_400Regular" },
 });
