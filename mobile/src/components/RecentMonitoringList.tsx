@@ -1,15 +1,17 @@
 import { View, Text, StyleSheet } from "react-native";
 import type { RiskHistoryPoint, RiskLevel } from "../types";
 
-const CARD_BG = "#161b27";
-const BORDER = "#262d3d";
-const TEXT_PRIMARY = "#dfe2ef";
-const TEXT_SECONDARY = "#7d8190";
+// --- PALETA TEMA CLARO ---
+const CARD_BG = "#FFFFFF";
+const BORDER = "#E8E0D5";
+const TEXT_PRIMARY = "#1A1A1A";
+const TEXT_SECONDARY = "#6B6B6B";
 
+// Colores más intensos para que los puntos destaquen sobre blanco
 const DOT_COLOR: Record<RiskLevel, string> = {
-  danger: "#ff8a8a",
-  warning: "#ffcf7a",
-  normal: "#9fe082",
+  danger: "#D94F4F",  // Rojo
+  warning: "#E8A020", // Naranja
+  normal: "#2E7D32",  // Verde
 };
 
 function formatTime(iso: string) {

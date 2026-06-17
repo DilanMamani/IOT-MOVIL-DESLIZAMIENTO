@@ -7,15 +7,17 @@ if (Platform.OS === "android" && UIManager.setLayoutAnimationEnabledExperimental
   UIManager.setLayoutAnimationEnabledExperimental(true);
 }
 
-const CARD_BG = "#161b27";
-const BORDER = "#262d3d";
-const TEXT_PRIMARY = "#dfe2ef";
-const TEXT_SECONDARY = "#7d8190";
+// --- PALETA TEMA CLARO ---
+const CARD_BG = "#FFFFFF";
+const BORDER = "#E8E0D5";
+const TEXT_PRIMARY = "#1A1A1A";
+const TEXT_SECONDARY = "#6B6B6B";
 
+// Colores adaptados para leerse perfecto sobre fondo blanco
 const LEVEL_META: Record<RiskLevel, { label: string; color: string; bg: string }> = {
-  danger:  { label: "Peligro",     color: "#ff8a8a", bg: "#3a1f1f" },
-  warning: { label: "Advertencia", color: "#ffcf7a", bg: "#3a2f12" },
-  normal:  { label: "Normal",      color: "#9fe082", bg: "#1c3318" },
+  danger:  { label: "Peligro",     color: "#D94F4F", bg: "#FDEAEA" },
+  warning: { label: "Advertencia", color: "#E8A020", bg: "#FFF3E0" },
+  normal:  { label: "Normal",      color: "#2E7D32", bg: "#E8F5E9" },
 };
 
 function formatTime(iso: string) {
@@ -52,7 +54,7 @@ export function CriticalAlertsCard({ rows, limit = 5 }: Props) {
       </TouchableOpacity>
 
       {expanded && (
-        <View style={{ gap: 10, marginTop: 8 }}>
+        <View style={{ gap: 10, marginTop: 12 }}>
           {criticalSamples.length === 0 ? (
             <View style={s.row}>
               <View style={[s.iconWrap, { backgroundColor: LEVEL_META.normal.bg }]}>
@@ -92,12 +94,14 @@ const s = StyleSheet.create({
   card: { backgroundColor: CARD_BG, borderRadius: 16, padding: 16, borderWidth: 1, borderColor: BORDER },
   headerRow: { flexDirection: "row", alignItems: "center", justifyContent: "space-between" },
   title: { fontSize: 15, color: TEXT_PRIMARY, fontFamily: "DMSans_700Bold" },
-  recoveredNote: { fontSize: 11, color: "#9fe082", fontFamily: "DMSans_400Regular", marginTop: 2 },
+  // Usamos el color verde de la paleta para el texto de recuperación
+  recoveredNote: { fontSize: 11, color: LEVEL_META.normal.color, fontFamily: "DMSans_400Regular", marginTop: 2 },
   row: { flexDirection: "row", gap: 10, alignItems: "flex-start" },
   iconWrap: { width: 32, height: 32, borderRadius: 10, justifyContent: "center", alignItems: "center" },
   rowTitle: { fontSize: 13, color: TEXT_PRIMARY, fontFamily: "DMSans_700Bold" },
   rowDesc: { fontSize: 12, color: TEXT_SECONDARY, fontFamily: "DMSans_400Regular", marginTop: 2 },
   scoreText: { fontSize: 11, color: TEXT_SECONDARY, fontFamily: "DMMono_400Regular", marginTop: 2 },
-  recoveredBadge: { backgroundColor: "#1c3318", borderRadius: 8, paddingHorizontal: 8, paddingVertical: 3 },
-  recoveredBadgeText: { fontSize: 9, color: "#9fe082", fontFamily: "DMSans_700Bold" },
+  // Badge de recuperación ahora usa el fondo verdecito y texto verde oscuro
+  recoveredBadge: { backgroundColor: LEVEL_META.normal.bg, borderRadius: 8, paddingHorizontal: 8, paddingVertical: 3 },
+  recoveredBadgeText: { fontSize: 9, color: LEVEL_META.normal.color, fontFamily: "DMSans_700Bold" },
 });

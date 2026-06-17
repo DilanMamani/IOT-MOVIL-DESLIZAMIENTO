@@ -1,21 +1,26 @@
 import { View, Text, StyleSheet, TouchableOpacity, ActivityIndicator } from "react-native";
 import type { LstmPrediction, RiskPredictionLevel } from "../types";
 
-const LEVEL_STYLE: Record<RiskPredictionLevel, { bg: string; text: string; label: string }> = {
-  danger:  { bg: "#3a1f1f", text: "#ff8a8a", label: "Peligro" },
-  warning: { bg: "#3a2f12", text: "#ffcf7a", label: "Advertencia" },
-  normal:  { bg: "#1c3318", text: "#9fe082", label: "Normal" },
-};
+// --- PALETA TEMA CLARO ---
+const CARD_BG = "#FFFFFF";
+const BORDER = "#E8E0D5";
+const TEXT_PRIMARY = "#1A1A1A";
+const TEXT_SECONDARY = "#6B6B6B";
+const ACCENT = "#C4622D"; // Terracota
+const LIGHT_FILL = "#F0F0F0"; // Para fondos secundarios como botones o barras
 
-const CARD_BG = "#161b27";
-const BORDER = "#262d3d";
-const TEXT_PRIMARY = "#dfe2ef";
-const TEXT_SECONDARY = "#7d8190";
-const ACCENT = "#ffb693";
+// Colores adaptados para leerse bien sobre fondo blanco
+const LEVEL_STYLE: Record<RiskPredictionLevel, { bg: string; text: string; label: string }> = {
+  danger:  { bg: "#FDEAEA", text: "#D94F4F", label: "Peligro" },
+  warning: { bg: "#FFF3E0", text: "#E8A020", label: "Advertencia" },
+  normal:  { bg: "#E8F5E9", text: "#2E7D32", label: "Normal" },
+};
 
 function ProbBar({ value }: { value: number }) {
   const pct = Math.min(100, Math.max(0, Math.round(value * 100)));
-  const color = pct >= 70 ? "#e25c5c" : pct >= 30 ? "#e2a23a" : "#5fbf4a";
+  // Ajuste de colores para la barra en tema claro
+  const color = pct >= 70 ? "#D94F4F" : pct >= 30 ? "#E8A020" : "#2E7D32";
+  
   return (
     <View style={{ flexDirection: "row", alignItems: "center", gap: 8 }}>
       <View style={s.barTrack}>
@@ -42,7 +47,7 @@ export function LstmPredictionCard({ result, loading, error, onRefresh }: Props)
       <View style={s.headerRow}>
         <Text style={s.title}>Predicción LSTM</Text>
         {loading ? (
-          <View style={[s.pill, { backgroundColor: "#1c2230" }]}>
+          <View style={[s.pill, { backgroundColor: LIGHT_FILL }]}>
             <Text style={[s.pillText, { color: TEXT_SECONDARY }]}>Calculando…</Text>
           </View>
         ) : result?.disponible ? (
@@ -50,7 +55,7 @@ export function LstmPredictionCard({ result, loading, error, onRefresh }: Props)
             <Text style={[s.pillText, { color: st.text }]}>{st.label}</Text>
           </View>
         ) : (
-          <View style={[s.pill, { backgroundColor: "#1c2230" }]}>
+          <View style={[s.pill, { backgroundColor: LIGHT_FILL }]}>
             <Text style={[s.pillText, { color: TEXT_SECONDARY }]}>Sin datos</Text>
           </View>
         )}
@@ -68,7 +73,8 @@ export function LstmPredictionCard({ result, loading, error, onRefresh }: Props)
 
       {!loading && error && (
         <View style={s.row}>
-          <Text style={[s.rowTitle, { color: "#ff8a8a" }]}>Error al predecir</Text>
+          {/* Rojo adaptado al tema claro para errores */}
+          <Text style={[s.rowTitle, { color: "#D94F4F" }]}>Error al predecir</Text>
           <Text style={s.rowDesc}>{error}</Text>
         </View>
       )}
@@ -123,9 +129,9 @@ const s = StyleSheet.create({
   label: { fontSize: 11, color: TEXT_SECONDARY, fontFamily: "DMSans_400Regular", marginBottom: 4 },
   statRow: { flexDirection: "row", justifyContent: "space-between", alignItems: "center" },
   statValue: { fontSize: 12, color: TEXT_PRIMARY, fontFamily: "DMSans_700Bold" },
-  barTrack: { flex: 1, height: 6, borderRadius: 3, backgroundColor: "#252b3a", overflow: "hidden" },
+  barTrack: { flex: 1, height: 6, borderRadius: 3, backgroundColor: LIGHT_FILL, overflow: "hidden" },
   barFill: { height: 6, borderRadius: 3 },
   barPct: { fontSize: 13, fontFamily: "DMSans_700Bold", minWidth: 36, textAlign: "right" },
-  refreshBtn: { alignSelf: "flex-end", paddingHorizontal: 10, paddingVertical: 6, borderRadius: 8, backgroundColor: "#1c2230" },
-  refreshBtnText: { fontSize: 11, color: TEXT_SECONDARY, fontFamily: "DMSans_700Bold" },
+  refreshBtn: { alignSelf: "flex-end", paddingHorizontal: 12, paddingVertical: 8, borderRadius: 8, backgroundColor: LIGHT_FILL },
+  refreshBtnText: { fontSize: 11, color: TEXT_PRIMARY, fontFamily: "DMSans_700Bold" },
 });
