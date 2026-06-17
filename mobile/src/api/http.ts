@@ -1,4 +1,4 @@
-import * as SecureStore from "expo-secure-store";
+import { storageGet, storageSet, storageDelete } from "./storage";
 
 const API_URL = process.env.EXPO_PUBLIC_API_URL ?? "http://localhost:3000";
 const SESSION_KEY = "terraguard_auth_session";
@@ -19,7 +19,7 @@ export class ApiError extends Error {
 }
 
 async function getToken(): Promise<string | null> {
-  const raw = await SecureStore.getItemAsync(SESSION_KEY);
+  const raw = await storageGet(SESSION_KEY);
   if (!raw) return null;
   try {
     return JSON.parse(raw).token ?? null;
@@ -79,4 +79,4 @@ export async function apiRequest<T>(
   return json.data;
 }
 
-export { SESSION_KEY, API_URL };
+export { SESSION_KEY, API_URL, storageGet, storageSet, storageDelete };
