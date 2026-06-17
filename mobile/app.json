@@ -17,7 +17,12 @@
         "monochromeImage": "./assets/android-icon-monochromeO.png"
       },
       "predictiveBackGestureEnabled": false,
-      "package": "com.anonymous.mobile"
+      "package": "com.anonymous.mobile",
+      "permissions": [
+        "android.permission.ACCESS_COARSE_LOCATION",
+        "android.permission.ACCESS_FINE_LOCATION",
+        "android.permission.RECORD_AUDIO"
+      ]
     },
     "web": {
       "favicon": "./assets/favicon.png"
@@ -39,6 +44,11 @@
           "cameraPermission": "TerraGuard necesita la cámara para fotografiar incidentes."
         }
       ]
-    ]
+    ],
+    "extra": {
+      "eas": {
+        "projectId": "5809236a-964b-4540-905d-5bb312676ebd"
+      }
+    }
   }
 }
