@@ -52,6 +52,18 @@ module.exports = {
   caramel: "#84592B",
   wine: "#743014",
   cocoa: "#442D1C",
+  // Citizen palette
+  terracota: "#C4622D",
+  "terracota-dark": "#A8501F",
+  "cream-warm": "#FAF7F2",
+  "cream-deep": "#F0EBE3",
+  "dark-panel": "#2C1A0E",
+  "status-danger-bg": "#FDEAEA",
+  "status-danger": "#D94F4F",
+  "status-warning-bg": "#FFF3E0",
+  "status-warning": "#E8A020",
+  "status-normal-bg": "#F0F0F0",
+  "status-normal": "#8C8C8C",
 },
       fontFamily: {
         sans: ["DMSans_400Regular"],

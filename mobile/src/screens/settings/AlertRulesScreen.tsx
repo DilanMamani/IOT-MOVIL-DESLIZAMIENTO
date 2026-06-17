@@ -9,7 +9,7 @@ import {
 } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { MaterialIcons } from "@expo/vector-icons";
-import * as SecureStore from "expo-secure-store";
+import { storageGet, storageSet } from "../../api/storage";
 import { ScreenHeader } from "../../components/ScreenHeader";
 import { PillButton } from "../../components/PillButton";
 import { ToggleSwitch } from "../../components/ToggleSwitch";
@@ -56,7 +56,7 @@ export function AlertRulesScreen() {
   const [saving, setSaving] = useState(false);
 
   useEffect(() => {
-    SecureStore.getItemAsync(CHANNEL_PREFS_KEY).then((raw) => {
+    storageGet(CHANNEL_PREFS_KEY).then((raw) => {
       if (raw) setChannelPrefs(JSON.parse(raw));
     });
   }, []);
@@ -70,7 +70,7 @@ export function AlertRulesScreen() {
   const toggleChannel = (key: string) => {
     const next = { ...channelPrefs, [key]: !channelPrefs[key] };
     setChannelPrefs(next);
-    SecureStore.setItemAsync(CHANNEL_PREFS_KEY, JSON.stringify(next));
+    storageSet(CHANNEL_PREFS_KEY, JSON.stringify(next));
   };
 
   const onSaveRule = async () => {

@@ -7,7 +7,7 @@ import {
   useState,
   type ReactNode,
 } from "react";
-import * as SecureStore from "expo-secure-store";
+import { storageGet, storageSet, storageDelete } from "../api/storage";
 import * as authApi from "../api/auth";
 import { SESSION_KEY } from "../api/http";
 import type { AuthSession, User } from "../types";
@@ -29,9 +29,9 @@ const AuthContext = createContext<AuthContextValue | undefined>(undefined);
 
 async function persistSession(session: AuthSession | null) {
   if (session) {
-    await SecureStore.setItemAsync(SESSION_KEY, JSON.stringify(session));
+    await storageSet(SESSION_KEY, JSON.stringify(session));
   } else {
-    await SecureStore.deleteItemAsync(SESSION_KEY);
+    await storageDelete(SESSION_KEY);
   }
 }
 
@@ -42,7 +42,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   useEffect(() => {
     (async () => {
       try {
-        const raw = await SecureStore.getItemAsync(SESSION_KEY);
+        const raw = await storageGet(SESSION_KEY);
         if (raw) {
           const stored = JSON.parse(raw) as AuthSession;
           setSession(stored);
