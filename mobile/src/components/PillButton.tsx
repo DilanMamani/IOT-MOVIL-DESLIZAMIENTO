@@ -33,7 +33,7 @@ export function PillButton({
     <Pressable
       onPress={onPress}
       disabled={disabled || loading}
-      className={`h-[52px] rounded-full items-center justify-center px-lg ${
+      className={`h-[52px] rounded-xl items-center justify-center px-lg ${
         flex ? "flex-1" : ""
       } ${VARIANT_STYLES[variant]} ${disabled ? "opacity-50" : "active:opacity-80"}`}
     >
