@@ -29,18 +29,15 @@ export function SplashScreen({ navigation }: Props) {
 
       <Animated.View style={[styles.content, { opacity: fadeIn, transform: [{ translateY: slideUp }] }]}>
         
-        {/* Badge minimalista */}
         <View style={styles.badge}>
-          <Ionicons name="layers-outline" size={26} color="#FAF7F2" />
+          <Ionicons name="layers-outline" size={26} color="#FBF6EC" />
         </View>
 
-        {/* Nombre */}
         <Text style={styles.appName}>SlideWatch</Text>
         <Text style={styles.tagline}>Sistema de alerta temprana</Text>
 
       </Animated.View>
 
-      {/* Slogan */}
       <Animated.View style={[styles.sloganWrap, { opacity: sloganFade }]}>
         <View style={styles.divider} />
         <Text style={styles.slogan}>
@@ -56,7 +53,7 @@ export function SplashScreen({ navigation }: Props) {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: '#2C1A0E',
+    backgroundColor: '#442D1C',
     alignItems: 'center',
     justifyContent: 'center',
     gap: 40,
@@ -70,21 +67,21 @@ const styles = StyleSheet.create({
     width: 68,
     height: 68,
     borderRadius: 20,
-    backgroundColor: '#3D2010',
+    backgroundColor: '#5C3D26',
     borderWidth: 1,
-    borderColor: '#C4622D',
+    borderColor: '#84592B',
     alignItems: 'center',
     justifyContent: 'center',
     marginBottom: 4,
   },
   appName: {
-    color: '#FAF7F2',
+    color: '#FBF6EC',
     fontSize: 30,
     fontWeight: '700',
     letterSpacing: 0.5,
   },
   tagline: {
-    color: '#7A6055',
+    color: '#C4AD8C',
     fontSize: 11,
     letterSpacing: 2,
     textTransform: 'uppercase',
@@ -96,18 +93,18 @@ const styles = StyleSheet.create({
   divider: {
     width: 32,
     height: 1,
-    backgroundColor: '#C4622D',
-    opacity: 0.5,
+    backgroundColor: '#9D9167',
+    opacity: 0.6,
   },
   slogan: {
-    color: '#A89080',
+    color: '#C4AD8C',
     fontSize: 18,
     fontWeight: '300',
     textAlign: 'center',
     letterSpacing: 0.3,
   },
   sloganAccent: {
-    color: '#C4622D',
+    color: '#E8D1A7',
     fontWeight: '600',
     fontStyle: 'italic',
   },
