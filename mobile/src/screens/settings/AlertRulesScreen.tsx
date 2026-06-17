@@ -22,6 +22,7 @@ import { useAuth } from "../../context/AuthContext";
 import { useMetricTypes } from "../../hooks/useMetricTypes";
 import { useThresholds } from "../../hooks/useThresholds";
 import type { ThresholdOperator } from "../../types";
+import { useTelegramLink } from "../../hooks/useTelegramLink";
 
 const CHANNEL_PREFS_KEY = "terraguard_channel_prefs";
 
@@ -42,6 +43,10 @@ export function AlertRulesScreen() {
   const { logout, user } = useAuth();
   const { metricTypes } = useMetricTypes();
   const { thresholds, create, remove } = useThresholds();
+  
+  const { linked, chatId, isLoading: telegramLoading, link, unlink } = useTelegramLink();
+  const [chatIdInput, setChatIdInput] = useState("");
+  const [linkingTelegram, setLinkingTelegram] = useState(false);
 
   const [channelPrefs, setChannelPrefs] = useState<Record<string, boolean>>({
     soil: true,
@@ -54,6 +59,30 @@ export function AlertRulesScreen() {
   const [value1, setValue1] = useState("");
   const [urgency, setUrgency] = useState<UrgencyLevel>("alta");
   const [saving, setSaving] = useState(false);
+
+  const onLinkTelegram = async () => {
+    if (!chatIdInput || isNaN(Number(chatIdInput))) {
+      RNAlert.alert("Dato inválido", "Ingresa el chat_id numérico que te dio el bot.");
+      return;
+    }
+    setLinkingTelegram(true);
+    try {
+      await link(Number(chatIdInput));
+      setChatIdInput("");
+      RNAlert.alert("Listo", "Telegram vinculado correctamente.");
+    } catch (err) {
+      RNAlert.alert("Error", err instanceof Error ? err.message : "No se pudo vincular");
+    } finally {
+      setLinkingTelegram(false);
+    }
+  };
+
+  const onUnlinkTelegram = () => {
+    RNAlert.alert("Desvincular Telegram", "¿Seguro que deseas desvincular tu cuenta de Telegram?", [
+      { text: "Cancelar", style: "cancel" },
+      { text: "Desvincular", style: "destructive", onPress: () => unlink() },
+    ]);
+  };
 
   useEffect(() => {
     storageGet(CHANNEL_PREFS_KEY)
@@ -146,6 +175,50 @@ export function AlertRulesScreen() {
               </View>
             ))}
           </View>
+        </View>
+        
+        <View
+          style={{ borderRadius: 18 }}
+          className="bg-surface-container-low border border-outline-variant p-4 gap-4"
+        >
+          <View className="flex-row items-center gap-2">
+            <View
+              style={{ backgroundColor: "#D6E4F5", borderRadius: 10 }}
+              className="w-8 h-8 items-center justify-center"
+            >
+              <MaterialIcons name="send" size={16} color="#1A5FB4" />
+            </View>
+            <Text className="font-sans-bold text-[15px] text-on-surface">
+              Notificaciones por Telegram
+            </Text>
+          </View>
+
+          {telegramLoading ? (
+            <Text className="font-sans text-[12px] text-on-surface-variant">Cargando...</Text>
+          ) : linked ? (
+            <>
+              <Text className="font-sans text-[12px] text-on-surface-variant">
+                Vinculado con chat_id: {chatId}
+              </Text>
+              <PillButton label="Desvincular" onPress={onUnlinkTelegram} />
+            </>
+          ) : (
+            <>
+              <Text className="font-sans text-[12px] text-on-surface-variant">
+                Abre el bot en Telegram, obtén tu chat_id y pégalo aquí para recibir alertas.
+              </Text>
+              <TextInput
+                value={chatIdInput}
+                onChangeText={setChatIdInput}
+                keyboardType="numeric"
+                placeholder="Ej: 123456789"
+                placeholderTextColor="#9D9167"
+                style={{ borderRadius: 12 }}
+                className="bg-level2-input border border-outline-variant px-3 h-[44px] font-sans text-[14px] text-on-surface"
+              />
+              <PillButton label="Vincular Telegram" onPress={onLinkTelegram} loading={linkingTelegram} />
+            </>
+          )}
         </View>
 
         <View
