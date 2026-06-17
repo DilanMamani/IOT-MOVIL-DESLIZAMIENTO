@@ -24,7 +24,6 @@ type Props = {
 
 export function RiskAlertsCard({ riskHistory, isAdmin, limit = 3 }: Props) {
   const dangerSamples = riskHistory.filter((r) => r.risk_level === "danger").slice(0, limit);
-  const lastLevel: RiskLevel = riskHistory[0]?.risk_level ?? "normal";
 
   return (
     <View style={s.card}>
@@ -75,10 +74,7 @@ export function RiskAlertsCard({ riskHistory, isAdmin, limit = 3 }: Props) {
 }
 
 const s = StyleSheet.create({
-  card: {
-    backgroundColor: "#fff", borderRadius: 16, padding: 16,
-    borderWidth: 1, borderColor: BORDER, gap: 10,
-  },
+  card: { backgroundColor: "#fff", borderRadius: 16, padding: 16, borderWidth: 1, borderColor: BORDER, gap: 10 },
   headerRow: { flexDirection: "row", justifyContent: "space-between", alignItems: "center" },
   title: { fontSize: 15, color: TEXT_PRIMARY, fontFamily: "DMSans_700Bold" },
   demoBadge: { backgroundColor: "#F0EBE3", borderRadius: 10, paddingHorizontal: 8, paddingVertical: 3 },

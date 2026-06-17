@@ -17,7 +17,7 @@ import * as reportsApi from "../../api/reports";
 import { fetchWeather } from "../../api/weather";
 import type { DashboardSnapshot, Report, WeatherCurrent, RiskLevel } from "../../types";
 import { useRiskHistory } from "../../hooks/useRiskHistory";
-import { RiskAlertsCard } from "../../components/RiskAlertsCard";
+import { RiskAlertsCard } from "../../components/RiskAlertsCard"; // cambiar de CriticalAlertsCard
 
 const TERRACOTA = "#C4622D";
 const DARK_PANEL = "#2C1A0E";

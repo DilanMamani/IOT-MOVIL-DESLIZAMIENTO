@@ -14,7 +14,7 @@ import { useRiskHistory } from "../../hooks/useRiskHistory";
 import { getOpenAlerts } from "../../api/alerts";
 import type { WeatherData } from "../../api/weather";
 import type { RiskHistoryPoint, RiskLevel, Alert } from "../../types";
-import { RiskAlertsCard } from "../../components/RiskAlertsCard";
+import { CriticalAlertsCard } from "../../components/CriticalAlertsCard"; // cambiar de RiskAlertsCard
 import { useAuth } from "../../context/AuthContext";
 const TERRACOTA = "#C4622D";
 const DARK_PANEL = "#2C1A0E";
@@ -253,10 +253,10 @@ export function WeatherScreen() {
         )}
         <View style={s.section}>
           <Text style={s.sectionTitle}>Últimas alertas de riesgo</Text>
-          <RiskAlertsCard riskHistory={riskHistory} isAdmin={true} />
+          
+            <CriticalAlertsCard rows={riskHistory} limit={5} />
         </View>
-
-
+        
         <View style={{ height: 32 }} />
       </ScrollView>
     </SafeAreaView>
